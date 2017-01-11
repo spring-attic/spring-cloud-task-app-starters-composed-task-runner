@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spring-cloud-starter-task-composedtaskrunner</artifactId>
+    <packaging>jar</packaging>
+    <name>Spring Cloud Starter Task Composed Task Runner</name>
+    <description>Contains the app for the Composed Task Starter</description>
+
+    <parent>
+        <groupId>org.springframework.cloud.task.app</groupId>
+        <artifactId>composedtaskrunner-task-app-starters-build</artifactId>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-task</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-batch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dataflow-rest-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dataflow-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-app-starter-doc-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.cloud.stream.app.plugin</groupId>
+                <artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
+                <configuration>
+                    <generatedProjectHome>${session.executionRootDirectory}/apps</generatedProjectHome>
+                    <generatedProjectVersion>${project.version}</generatedProjectVersion>
+                    <bom>
+                        <name>scs-bom</name>
+                        <groupId>org.springframework.cloud.task.app</groupId>
+                        <artifactId>composedtaskrunner-task-app-dependencies</artifactId>
+                        <version>${project.version}</version>
+                    </bom>
+                    <additionalBoms>
+                        <bom>
+                            <name>task-app-starters-core-dependencies</name>
+                            <groupId>org.springframework.cloud.task.app</groupId>
+                            <artifactId>task-app-starters-core-dependencies</artifactId>
+                            <version>1.2.0.BUILD-SNAPSHOT</version>
+                        </bom>
+                    </additionalBoms>
+                    <generatedApps>
+                        <composedtaskrunner-task>
+                            <autoConfigClass>org.springframework.cloud.task.app.composedtaskrunner.ComposedTaskRunnerConfiguration.class</autoConfigClass>
+                        </composedtaskrunner-task>
+                    </generatedApps>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
