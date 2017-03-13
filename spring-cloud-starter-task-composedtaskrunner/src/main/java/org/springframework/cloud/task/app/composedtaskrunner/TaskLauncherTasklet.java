@@ -94,8 +94,10 @@ public class TaskLauncherTasklet implements Tasklet {
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
-		String tmpTaskName = this.taskName.substring(0, this.taskName.lastIndexOf('_'));
-		long executionId = taskOperations.launch(tmpTaskName, this.properties, this.arguments);
+		String tmpTaskName = this.taskName.substring(0,
+				this.taskName.lastIndexOf('_'));
+		long executionId = this.taskOperations.launch(tmpTaskName,
+				this.properties, this.arguments);
 		chunkContext.getStepContext().getStepExecution().getExecutionContext()
 				.put("task-execution-id", executionId);
 		waitForTaskToComplete(executionId);
@@ -104,7 +106,7 @@ public class TaskLauncherTasklet implements Tasklet {
 
 	private boolean waitForTaskToComplete(long taskExecutionId) {
 		long timeout = System.currentTimeMillis() +
-				composedTaskProperties.getMaxWaitTime();
+				this.composedTaskProperties.getMaxWaitTime();
 		boolean isComplete = false;
 		while (!isComplete && System.currentTimeMillis() < timeout) {
 			try {
@@ -115,7 +117,7 @@ public class TaskLauncherTasklet implements Tasklet {
 				throw new IllegalStateException(e.getMessage(), e);
 			}
 			TaskExecution taskExecution =
-					taskExplorer.getTaskExecution(taskExecutionId);
+					this.taskExplorer.getTaskExecution(taskExecutionId);
 			if(taskExecution != null && taskExecution.getEndTime() != null) {
 				isComplete = true;
 			}

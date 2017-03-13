@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
 import org.springframework.cloud.dataflow.core.dsl.ComposedTaskValidatorVisitor;
+import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerJobBuilder;
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerVisitor;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.EnableTask;
@@ -61,14 +62,23 @@ public class ComposedRunnerVisitorConfiguration {
 	private ComposedTaskProperties composedTaskProperties;
 
 	@Bean
-	public Job job(ComposedRunnerVisitor composedRunnerVisitor) {
+	ComposedRunnerJobBuilder getComposedJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
 		ComposedTaskParser taskParser = new ComposedTaskParser();
-		taskParser.parse("atest", composedTaskProperties.getGraph()).accept(new ComposedTaskValidatorVisitor());
-		taskParser.parse("atest", composedTaskProperties.getGraph()).accept(composedRunnerVisitor);
-		Set<String> result = taskParser.parse("atest", composedTaskProperties.getGraph()).getTaskApps();
+		taskParser.parse("atest", this.composedTaskProperties.getGraph())
+				.accept(composedRunnerVisitor);
+		taskParser.parse("atest", this.composedTaskProperties.getGraph())
+				.getTaskApps();
+		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
+	}
 
-		return jobBuilderFactory.get("job")
-				.start(composedRunnerVisitor.getFlowBuilder().end()).end()
+	@Bean
+	public Job job(ComposedRunnerJobBuilder composedRunnerJobBuilder) {
+		ComposedTaskParser taskParser = new ComposedTaskParser();
+		taskParser.parse("atest", this.composedTaskProperties.getGraph())
+				.accept(new ComposedTaskValidatorVisitor());
+
+		return this.jobBuilderFactory.get("job")
+				.start(composedRunnerJobBuilder.getFlowBuilder().end()).end()
 				.build();
 	}
 

@@ -64,12 +64,12 @@ public class ComposedTaskRunnerConfiguration {
 
 	@Bean
 	public TaskRepository taskRepository() {
-		return new SimpleTaskRepository(new TaskExecutionDaoFactoryBean(dataSource));
+		return new SimpleTaskRepository(new TaskExecutionDaoFactoryBean(this.dataSource));
 	}
 
 	@Bean
 	public TaskExplorer taskExplorer() {
-		return new SimpleTaskExplorer(new TaskExecutionDaoFactoryBean(dataSource));
+		return new SimpleTaskExplorer(new TaskExecutionDaoFactoryBean(this.dataSource));
 	}
 
 	@Bean
@@ -77,12 +77,19 @@ public class ComposedTaskRunnerConfiguration {
 		return new ComposedTaskStepExecutionListener(taskExplorer());
 	}
 
-	@Bean
-	public Job getComposedTaskJob(ComposedRunnerVisitor composedRunnerVisitor) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
-		taskParser.parse("aname", properties.getGraph()).accept(composedRunnerVisitor);
 
-		return jobs.get(getTaskName()).start(composedRunnerVisitor.getFlowBuilder().end()).end().build();
+	@Bean
+	public ComposedRunnerJobBuilder composedRunnerJobBuilder(
+			ComposedRunnerVisitor composedRunnerVisitor) {
+		ComposedTaskParser taskParser = new ComposedTaskParser();
+		taskParser.parse("aname", this.properties.getGraph()).accept(composedRunnerVisitor);
+		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
+	}
+
+	@Bean
+	public Job getComposedTaskJob(ComposedRunnerJobBuilder composedRunnerJobBuilder) {
+
+		return this.jobs.get(getTaskName()).start(composedRunnerJobBuilder.getFlowBuilder().end()).end().build();
 	}
 
 	@Bean
@@ -92,13 +99,13 @@ public class ComposedTaskRunnerConfiguration {
 	}
 
 	 private String getTaskName() {
-		String configuredName = context.getEnvironment().
+		String configuredName = this.context.getEnvironment().
 				getProperty("spring.cloud.task.name");
 		 if (StringUtils.hasText(configuredName)) {
 			 return configuredName;
 		 }
 		 else {
-			 return context.getId();
+			 return this.context.getId();
 		 }
 	 }
 }

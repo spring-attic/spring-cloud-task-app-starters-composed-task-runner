@@ -59,10 +59,10 @@ public class ComposedTaskRunnerConfigurationTests {
 	@Test
 	@DirtiesContext
 	public void testComposedConfiguration() throws Exception {
-		JobExecution jobExecution = jobRepository.createJobExecution(
+		JobExecution jobExecution = this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
 		job.execute(jobExecution);
-		assertTrue(taskOperations.isLaunched());
+		assertTrue(this.taskOperations.isLaunched());
 	}
 
 }

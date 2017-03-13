@@ -32,6 +32,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -96,8 +97,8 @@ public class ComposedRunnerVisitorTests {
 		assertEquals(2, stepExecutions.size());
 		List<StepExecution> sortedStepExecution =
 				getSortedStepExecutions(stepExecutions);
-		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
-		assertEquals("AAA_1", sortedStepExecution.get(1).getStepName());
+		assertEquals("AAA_1", sortedStepExecution.get(0).getStepName());
+		assertEquals("AAA_0", sortedStepExecution.get(1).getStepName());
 
 	}
 
@@ -158,6 +159,43 @@ public class ComposedRunnerVisitorTests {
 	}
 
 	@Test
+	public void testSequentialTransitionAndSplit() {
+		setupContextForGraph("AAA && FFF 'FAILED' -> EEE && <BBB||CCC> && DDD");
+		Collection<StepExecution> stepExecutions = getStepExecutions();
+		Set<String> stepNames= getStepNames(stepExecutions);
+		assertEquals(5, stepExecutions.size());
+		assertTrue(stepNames.contains("AAA_0"));
+		assertTrue(stepNames.contains("BBB_0"));
+		assertTrue(stepNames.contains("CCC_0"));
+		assertTrue(stepNames.contains("DDD_0"));
+		assertTrue(stepNames.contains("FFF_0"));
+		List<StepExecution> sortedStepExecution =
+				getSortedStepExecutions(stepExecutions);
+		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
+		assertEquals("DDD_0", sortedStepExecution.get(4).getStepName());
+	}
+
+	@Test
+	public void testSequentialTransitionAndSplitFailedInvalid() {
+		try {
+			setupContextForGraph("AAA && failedStep 'FAILED' -> EEE '*' -> FFF && <BBB||CCC> && DDD");
+		}
+		catch (BeanCreationException bce) {
+			validateInvalidFlowWildCard(bce);
+		}
+	}
+
+	@Test
+	public void testSequentialTransitionAndSplitFailed() {
+		setupContextForGraph("AAA && failedStep 'FAILED' -> EEE && FFF && <BBB||CCC> && DDD");
+		Collection<StepExecution> stepExecutions = getStepExecutions();
+		Set<String> stepNames= getStepNames(stepExecutions);
+		assertEquals(3, stepExecutions.size());
+		assertTrue(stepNames.contains("AAA_0"));
+		assertTrue(stepNames.contains("failedStep_0"));
+		assertTrue(stepNames.contains("EEE_0"));
+	}
+	@Test
 	public void testSequentialAndFailedSplit() {
 		setupContextForGraph("AAA && <BBB||failedStep||DDD> && EEE");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
@@ -210,71 +248,77 @@ public class ComposedRunnerVisitorTests {
 
 	@Test
 	public void testSuccessBasicTransitionWithSequence() {
-		setupContextForGraph("AAA 'FAILED' -> BBB * -> CCC && DDD && EEE");
-		Collection<StepExecution> stepExecutions = getStepExecutions();
-		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(4, stepExecutions.size());
-		assertTrue(stepNames.contains("AAA_0"));
-		assertTrue(stepNames.contains("CCC_0"));
-		assertTrue(stepNames.contains("DDD_0"));
-		assertTrue(stepNames.contains("EEE_0"));
+		try {
+			setupContextForGraph("AAA 'FAILED' -> BBB * -> CCC && DDD && EEE");
+		}
+		catch (BeanCreationException bce) {
+			validateInvalidFlowWildCard(bce);
+		}
 	}
 
-	//@Test
-	public void testFailBasicTransitionWithSequence() {// failing because DDD & EEE are fired.
-		setupContextForGraph("failedStep 'FAILED' -> BBB * -> CCC && DDD && EEE");
+	@Test
+	public void testSuccessBasicTransitionWithTransition() {
+		setupContextForGraph("AAA 'FAILED' -> BBB && CCC 'FAILED' -> DDD '*' -> EEE");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
 		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(2, stepExecutions.size());
-		assertTrue(stepNames.contains("failedStep_0"));
-		assertTrue(stepNames.contains("BBB_0"));
+		assertEquals(3, stepExecutions.size());
+		assertTrue(stepNames.contains("AAA_0"));
+		assertTrue(stepNames.contains("CCC_0"));
+		assertTrue(stepNames.contains("EEE_0"));
+		List<StepExecution> sortedStepExecution =
+				getSortedStepExecutions(stepExecutions);
+		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
+		assertEquals("EEE_0", sortedStepExecution.get(2).getStepName());
 	}
 
 	@Test
 	public void testSequenceFollowedBySuccessBasicTransitionSequence() {
-		setupContextForGraph("DDD && AAA 'FAILED' -> BBB * -> CCC && EEE");
+		try {
+			setupContextForGraph("DDD && AAA 'FAILED' -> BBB * -> CCC && EEE");
+		}
+		catch (BeanCreationException bce) {
+			validateInvalidFlowWildCard(bce);
+		}
+	}
+
+	@Test
+	public void testWildCardOnlyInLastPosition() {
+			setupContextForGraph("AAA 'FAILED' -> BBB && CCC * -> DDD ");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
 		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(4, stepExecutions.size());
+		assertEquals(3, stepExecutions.size());
 		assertTrue(stepNames.contains("AAA_0"));
 		assertTrue(stepNames.contains("CCC_0"));
 		assertTrue(stepNames.contains("DDD_0"));
-		assertTrue(stepNames.contains("EEE_0"));
+		List<StepExecution> sortedStepExecution =
+				getSortedStepExecutions(stepExecutions);
+		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
+		assertEquals("DDD_0", sortedStepExecution.get(2).getStepName());
 	}
+
 
 	@Test
 	public void failedStepTransitionWithDuplicateTaskNameTest() {//should fail because bbb should fire then stop.
 		setupContextForGraph("failedStep 'FAILED' -> BBB  && CCC && BBB && EEE");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
 		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(5, stepExecutions.size());
-		assertTrue(stepNames.contains("CCC_0"));
-		assertTrue(stepNames.contains("EEE_0"));
+		assertEquals(2, stepExecutions.size());
 		assertTrue(stepNames.contains("failedStep_0"));
-		assertTrue(stepNames.contains("BBB_0"));
 		assertTrue(stepNames.contains("BBB_1"));
 		List<StepExecution> sortedStepExecution =
 				getSortedStepExecutions(stepExecutions);
 		assertEquals("failedStep_0", sortedStepExecution.get(0).getStepName());
-		assertEquals("BBB_0", sortedStepExecution.get(1).getStepName());
+		assertEquals("BBB_1", sortedStepExecution.get(1).getStepName());
 	}
 
 	@Test
 	public void successStepTransitionWithDuplicateTaskNameTest() {
-		setupContextForGraph("AAA 'FAILED' -> BBB  * -> CCC && BBB && EEE");
-		Collection<StepExecution> stepExecutions = getStepExecutions();
-		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(4, stepExecutions.size());
-		assertTrue(stepNames.contains("CCC_0"));
-		assertTrue(stepNames.contains("EEE_0"));
-		assertTrue(stepNames.contains("AAA_0"));
-		assertTrue(stepNames.contains("BBB_1"));
-		List<StepExecution> sortedStepExecution =
-				getSortedStepExecutions(stepExecutions);
-		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
-		assertEquals("CCC_0", sortedStepExecution.get(1).getStepName());
-		assertEquals("BBB_1", sortedStepExecution.get(2).getStepName());
-		assertEquals("EEE_0", sortedStepExecution.get(3).getStepName());
+		try {
+			setupContextForGraph("AAA 'FAILED' -> BBB  * -> CCC && BBB && EEE");
+		}
+		catch (BeanCreationException bce) {
+			validateInvalidFlowWildCard(bce);
+		}
 
 	}
 
@@ -316,6 +360,12 @@ public class ComposedRunnerVisitorTests {
 			}
 		});
 		return result;
+	}
+
+	private void validateInvalidFlowWildCard(BeanCreationException bce) {
+		assertEquals(IllegalStateException.class, bce.getRootCause().getClass());
+		assertEquals("Invalid flow following '*' specifier.",
+				bce.getRootCause().getMessage());
 	}
 
 }

@@ -42,7 +42,8 @@ public class DataFlowConfiguration {
 	@Bean
 	public TaskOperations taskOperations() {
 		TaskOperations taskOperations = null;
-		DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(properties.getDataFlowUri());
+		DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(
+				this.properties.getDataFlowUri());
 		taskOperations = dataFlowTemplate.taskOperations();
 		return taskOperations;
 	}

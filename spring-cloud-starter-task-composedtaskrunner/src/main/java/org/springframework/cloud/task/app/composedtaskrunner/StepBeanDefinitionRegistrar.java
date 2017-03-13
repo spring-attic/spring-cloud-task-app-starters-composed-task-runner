@@ -85,7 +85,6 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 		String maxWaitTime = this.env.getProperty("maxWaitTime");
 		String intervalTimeBetweenChecks =
 				this.env.getProperty("intervalTimeBetweenChecks");
-		String jobNamePrefix = this.env.getProperty("jobNamePrefix");
 		properties.setGraph(this.env.getProperty("graph"));
 		properties.setComposedTaskArguments(
 				this.env.getProperty("composedTaskArguments"));

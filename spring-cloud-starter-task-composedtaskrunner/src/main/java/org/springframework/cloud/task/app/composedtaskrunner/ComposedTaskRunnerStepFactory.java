@@ -82,12 +82,12 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 				this.taskOperations, this.taskExplorer,
 				this.composedTaskProperties, this.taskName, this.taskSpecificProps,
 				this.arguments);
-		String stepName = String.format("%s_%s",taskName,
+		String stepName = String.format("%s_%s",this.taskName,
 				UUID.randomUUID().toString());
 		Step step = this.steps.get(stepName)
 				.tasklet(taskLauncherTasklet)
 				.transactionAttribute(getTransactionAttribute())
-				.listener(composedTaskStepExecutionListener)
+				.listener(this.composedTaskStepExecutionListener)
 				.build();
 		return step;
 	}

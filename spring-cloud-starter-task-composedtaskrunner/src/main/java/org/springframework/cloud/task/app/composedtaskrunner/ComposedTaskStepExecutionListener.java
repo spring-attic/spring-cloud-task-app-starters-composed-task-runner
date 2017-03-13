@@ -61,21 +61,21 @@ public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupp
 		logger.info(String.format("AfterStep processing for stepExecution %s",
 				stepExecution.getStepName()));
 
-		Long executionId = (Long)stepExecution.getExecutionContext().get("task-execution-id");
+		Long executionId = (Long) stepExecution.getExecutionContext().get("task-execution-id");
 		Assert.notNull(executionId, "TaskLauncherTasklet did not " +
 				"return a task-execution-id.  Check to see if task " +
 				"exists.");
 
-			TaskExecution resultExecution = taskExplorer.getTaskExecution(Long.valueOf(executionId));
-			if(resultExecution.getEndTime() == null) {
-				result = ExitStatus.UNKNOWN;
-			}
-			else if(!StringUtils.isEmpty(resultExecution.getExitMessage())) {
-				result = new ExitStatus(resultExecution.getExitMessage());
-			}
-			else if(resultExecution.getExitCode() != 0) {
-				result = ExitStatus.FAILED;
-			}
+		TaskExecution resultExecution = this.taskExplorer.getTaskExecution(Long.valueOf(executionId));
+		if (resultExecution.getEndTime() == null) {
+			result = ExitStatus.UNKNOWN;
+		}
+		else if (!StringUtils.isEmpty(resultExecution.getExitMessage())) {
+			result = new ExitStatus(resultExecution.getExitMessage());
+		}
+		else if (resultExecution.getExitCode() != 0) {
+			result = ExitStatus.FAILED;
+		}
 		logger.info(String.format("AfterStep processing complete for " +
 						"stepExecution %s with taskExecution %s",
 				stepExecution.getStepName(), executionId));

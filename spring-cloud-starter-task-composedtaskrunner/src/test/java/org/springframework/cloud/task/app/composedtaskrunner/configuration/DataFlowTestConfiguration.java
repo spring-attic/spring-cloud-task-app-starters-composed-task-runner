@@ -60,7 +60,7 @@ public class DataFlowTestConfiguration {
 
 		@Override
 		public long launch(String name, Map<String, String> properties, List<String> arguments) {
-			isLaunched = true;
+			this.isLaunched = true;
 			return 1;
 		}
 
@@ -90,7 +90,7 @@ public class DataFlowTestConfiguration {
 		}
 
 		public boolean isLaunched() {
-			return isLaunched;
+			return this.isLaunched;
 		}
 
 	}

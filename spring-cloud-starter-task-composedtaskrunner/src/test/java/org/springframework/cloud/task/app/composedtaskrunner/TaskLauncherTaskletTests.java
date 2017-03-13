@@ -106,14 +106,14 @@ public class TaskLauncherTaskletTests {
 
 	@Before
 	public void setup() throws Exception{
-		taskRepositoryInitializer.setDataSource(dataSource);
+		this.taskRepositoryInitializer.setDataSource(this.dataSource);
 
-		taskRepositoryInitializer.afterPropertiesSet();
-		taskOperations = mock(TaskOperations.class);
+		this.taskRepositoryInitializer.afterPropertiesSet();
+		this.taskOperations = mock(TaskOperations.class);
 		TaskExecutionDaoFactoryBean taskExecutionDaoFactoryBean =
-				new TaskExecutionDaoFactoryBean(dataSource);
-		taskRepository = new SimpleTaskRepository(taskExecutionDaoFactoryBean);
-		taskExplorer = new SimpleTaskExplorer(taskExecutionDaoFactoryBean);
+				new TaskExecutionDaoFactoryBean(this.dataSource);
+		this.taskRepository = new SimpleTaskRepository(taskExecutionDaoFactoryBean);
+		this.taskExplorer = new SimpleTaskExplorer(taskExecutionDaoFactoryBean);
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class TaskLauncherTaskletTests {
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id");
 		assertEquals(1L, taskExecutionId);
-		TaskExecution taskExecution = taskExplorer.getTaskExecution(taskExecutionId);
+		TaskExecution taskExecution = this.taskExplorer.getTaskExecution(taskExecutionId);
 		assertNull(taskExecution.getExitMessage());
 	}
 	@Test
@@ -159,7 +159,7 @@ public class TaskLauncherTaskletTests {
 				"Could not find task definition named " + TASK_NAME;
 		VndErrors errors = new VndErrors("message", ERROR_MESSAGE, new Link("ref"));
 		Mockito.doThrow(new DataFlowClientException(errors))
-				.when(taskOperations)
+				.when(this.taskOperations)
 				.launch(Matchers.anyString(),
 						(Map<String, String>) Matchers.any(),
 						(List<String>) Matchers.any());
@@ -180,7 +180,10 @@ public class TaskLauncherTaskletTests {
 		String exceptionMessage = null;
 		final String ERROR_MESSAGE =
 				"I/O error on GET request for \"http://localhost:9393\": Connection refused; nested exception is java.net.ConnectException: Connection refused";
-		Mockito.doThrow(new ResourceAccessException(ERROR_MESSAGE)).when(taskOperations).launch(Matchers.anyString(), (Map<String,String>) Matchers.any(), (List<String>) Matchers.any());
+		Mockito.doThrow(new ResourceAccessException(ERROR_MESSAGE))
+				.when(this.taskOperations).launch(Matchers.anyString(),
+				(Map<String,String>) Matchers.any(),
+				(List<String>) Matchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
@@ -193,20 +196,20 @@ public class TaskLauncherTaskletTests {
 	}
 
 	private TaskExecution getCompleteTaskExecution() {
-		TaskExecution taskExecution = taskRepository.createTaskExecution();
-		taskRepository.completeTaskExecution(taskExecution.getExecutionId(),
+		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
+		this.taskRepository.completeTaskExecution(taskExecution.getExecutionId(),
 				0, new Date(), "");
 		return taskExecution;
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
-		TaskExecution taskExecution = taskRepository.createTaskExecution();
+		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
 		return getTaskExecutionTasklet(taskExecution);
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet(TaskExecution taskExecution) {
-		return new TaskLauncherTasklet(taskOperations,
-				taskExplorer, composedTaskProperties,
+		return new TaskLauncherTasklet(this.taskOperations,
+				this.taskExplorer, this.composedTaskProperties,
 				TASK_NAME, new HashMap<String,String>(), new ArrayList<String>());
 	}
 
@@ -224,7 +227,7 @@ public class TaskLauncherTaskletTests {
 
 	private void mockReturnValForTaskExecution(long executionId) {
 		Mockito.doReturn(executionId)
-				.when(taskOperations)
+				.when(this.taskOperations)
 				.launch(Matchers.anyString(),
 						(Map<String, String>) Matchers.any(),
 						(List<String>) Matchers.any());

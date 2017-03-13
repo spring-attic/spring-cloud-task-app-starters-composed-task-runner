@@ -63,7 +63,7 @@ public class ComposedTaskProperties {
 
 	public ComposedTaskProperties() {
 		try {
-			dataFlowUri = new URI("http://localhost:9393");
+			this.dataFlowUri = new URI("http://localhost:9393");
 		}
 		catch (URISyntaxException e) {
 			throw new IllegalStateException("Invalid Spring Cloud Data Flow URI");
@@ -71,7 +71,7 @@ public class ComposedTaskProperties {
 	}
 
 	public int getMaxWaitTime() {
-		return maxWaitTime;
+		return this.maxWaitTime;
 	}
 
 	public void setMaxWaitTime(int maxWaitTime) {
@@ -87,7 +87,7 @@ public class ComposedTaskProperties {
 	}
 
 	public URI getDataFlowUri() {
-		return dataFlowUri;
+		return this.dataFlowUri;
 	}
 
 	public void setDataFlowUri(URI dataFlowUri) {
@@ -95,7 +95,7 @@ public class ComposedTaskProperties {
 	}
 
 	public String getGraph() {
-		return graph;
+		return this.graph;
 	}
 
 	public void setGraph(String graph) {
@@ -103,7 +103,7 @@ public class ComposedTaskProperties {
 	}
 
 	public String getComposedTaskProperties() {
-		return composedTaskProperties;
+		return this.composedTaskProperties;
 	}
 
 	public void setComposedTaskProperties(String composedTaskProperties) {
@@ -111,7 +111,7 @@ public class ComposedTaskProperties {
 	}
 
 	public String getComposedTaskArguments() {
-		return composedTaskArguments;
+		return this.composedTaskArguments;
 	}
 
 	public void setComposedTaskArguments(String composedTaskArguments) {
