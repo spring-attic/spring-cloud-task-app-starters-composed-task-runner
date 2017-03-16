@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
@@ -96,10 +97,22 @@ public class TaskLauncherTasklet implements Tasklet {
 			ChunkContext chunkContext) throws Exception {
 		String tmpTaskName = this.taskName.substring(0,
 				this.taskName.lastIndexOf('_'));
+
+		List<String> args = this.arguments;
+
+		ExecutionContext stepExecutionContext = chunkContext.getStepContext().getStepExecution().
+				getExecutionContext();
+		if(stepExecutionContext.containsKey("task-arguments")) {
+			args = (List<String>) stepExecutionContext.get("task-arguments");
+		}
+
 		long executionId = this.taskOperations.launch(tmpTaskName,
-				this.properties, this.arguments);
-		chunkContext.getStepContext().getStepExecution().getExecutionContext()
-				.put("task-execution-id", executionId);
+				this.properties, args);
+
+		stepExecutionContext
+					.put("task-execution-id", executionId);
+		stepExecutionContext.put("task-arguments", args);
+
 		waitForTaskToComplete(executionId);
 		return RepeatStatus.FINISHED;
 	}
