@@ -17,10 +17,11 @@
 package org.springframework.cloud.task.app.composedtaskrunner;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.UUID;
 
 import org.springframework.batch.core.Step;
@@ -34,7 +35,7 @@ import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -49,22 +50,25 @@ public class ComposedRunnerJobBuilder {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private TaskExecutor taskExecutor;
+
 	private FlowBuilder<Flow> flowBuilder;
 
 	private Map<String, Integer> taskBeanSuffixes = new HashMap<>();
 
-	private Stack visitorStack = new Stack<>();
+	private Deque visitorDeque = new LinkedList();
 
-	private Stack<Flow> jobStack = new Stack<>();
+	private Deque<Flow> jobDeque = new LinkedList();
 
 	public ComposedRunnerJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
 		Assert.notNull(composedRunnerVisitor, "composedRunnerVisitor must not be null");
 		this.flowBuilder = new FlowBuilder<>(UUID.randomUUID().toString());
-		this.visitorStack = composedRunnerVisitor.getFlowStack();
+		this.visitorDeque = composedRunnerVisitor.getFlowDeque();
 	}
 
 	/**
-	 * Create a FlowBuilder based on the stack provided by the
+	 * Create a FlowBuilder based on the deque provided by the
 	 * ComposedRunnerVisitor.
 
 	 * @return FlowBuilder that generates the composed task flow.
@@ -74,118 +78,119 @@ public class ComposedRunnerJobBuilder {
 	}
 
 	private Flow createFlow() {
-		Stack<Flow> executionStack = new Stack<>();
-		while (!this.visitorStack.isEmpty()) {
-			if (this.visitorStack.peek() instanceof TaskAppNode) {
-				TaskAppNode taskAppNode = (TaskAppNode) this.visitorStack.pop();
+		Deque<Flow> executionDeque = new LinkedList<>();
+		while (!this.visitorDeque.isEmpty()) {
+			if (this.visitorDeque.peek() instanceof TaskAppNode) {
+				TaskAppNode taskAppNode = (TaskAppNode) this.visitorDeque.pop();
 				if (taskAppNode.hasTransitions()) {
-					handleTransition(executionStack, taskAppNode);
+					handleTransition(executionDeque, taskAppNode);
 				}
 				else {
-					executionStack.push(
+					executionDeque.push(
 							getTaskAppFlow(taskAppNode));
 				}
 			}
 			//When end marker of a split is found, process the split
-			else if (this.visitorStack.peek() instanceof SplitNode) {
-				handleSplit(executionStack, (SplitNode) this.visitorStack.pop());
+			else if (this.visitorDeque.peek() instanceof SplitNode) {
+				handleSplit(executionDeque, (SplitNode) this.visitorDeque.pop());
 			}
 			//When start marker of a DSL flow is found, process it.
-			else if (this.visitorStack.peek() instanceof FlowNode) {
-				handleFlow(executionStack);
+			else if (this.visitorDeque.peek() instanceof FlowNode) {
+				handleFlow(executionDeque);
 			}
 		}
-		return this.jobStack.pop();
+		return this.jobDeque.pop();
 	}
 
-	private void handleFlow(Stack<Flow> executionStack) {
+	private void handleFlow(Deque<Flow> executionDeque) {
 		boolean isFirst = true;
-		while (!executionStack.isEmpty()) {
+		while (!executionDeque.isEmpty()) {
 			if (isFirst) {
-				this.flowBuilder.start(executionStack.pop());
+				this.flowBuilder.start(executionDeque.pop());
 				isFirst = false;
 			}
 			else {
-				this.flowBuilder.next(executionStack.pop());
+				this.flowBuilder.next(executionDeque.pop());
 			}
 		}
-		this.visitorStack.pop();
-		this.jobStack.push(this.flowBuilder.end());
+		this.visitorDeque.pop();
+		this.jobDeque.push(this.flowBuilder.end());
 	}
 
-	private void handleSplit(Stack<Flow> executionStack, SplitNode splitNode) {
+	private void handleSplit(Deque<Flow> executionDeque, SplitNode splitNode) {
 		FlowBuilder<Flow> taskAppFlowBuilder =
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
 		List<Flow> flows = new ArrayList<>();
 		//For each node in the split process it as a DSL flow.
 		for (LabelledComposedTaskNode taskNode : splitNode.getSeries()) {
-			Stack<Flow> elementFlowStack = processSplitFlow(taskNode);
-			while (!elementFlowStack.isEmpty()) {
-				flows.add(elementFlowStack.pop());
+			Deque<Flow> elementFlowDeque = processSplitFlow(taskNode);
+			while (!elementFlowDeque.isEmpty()) {
+				flows.add(elementFlowDeque.pop());
 			}
 		}
+
 		Flow splitFlow = new FlowBuilder.SplitBuilder<>(
 				new FlowBuilder<Flow>("Split" + UUID.randomUUID().toString()),
-				new SimpleAsyncTaskExecutor())
+				taskExecutor)
 				.add(flows.toArray(new Flow[flows.size()])).build();
 		//remove the nodes of the split since it has already been processed
-		while (!(this.visitorStack.peek() instanceof SplitNode)) {
-			this.visitorStack.pop();
+		while (!(this.visitorDeque.peek() instanceof SplitNode)) {
+			this.visitorDeque.pop();
 		}
-		// pop the SplitNode that marks the beginning of the split from the stack
-		this.visitorStack.pop();
-		executionStack.push(taskAppFlowBuilder.start(splitFlow).end());
+		// pop the SplitNode that marks the beginning of the split from the deque
+		this.visitorDeque.pop();
+		executionDeque.push(taskAppFlowBuilder.start(splitFlow).end());
 	}
 
 	/**
 	 * Processes each node in split as a  DSL Flow.
 	 * @param node represents a single node in the split.
-	 * @return Stack of Job Flows that was obtained from the Node.
+	 * @return Deque of Job Flows that was obtained from the Node.
 	 */
-	private Stack<Flow> processSplitFlow(LabelledComposedTaskNode node) {
+	private Deque<Flow> processSplitFlow(LabelledComposedTaskNode node) {
 		ComposedTaskParser taskParser = new ComposedTaskParser();
 		ComposedRunnerVisitor splitElementVisitor = new ComposedRunnerVisitor();
 		taskParser.parse("aname", node.stringify()).accept(splitElementVisitor);
-		Stack splitElementStack = splitElementVisitor.getFlowStack();
-		Stack<Flow> elementFlowStack = new Stack<>();
-		Stack<Flow> resultFlowStack = new Stack<>();
-		while (!splitElementStack.isEmpty()) {
-			if (splitElementStack.peek() instanceof TaskAppNode) {
-				TaskAppNode taskAppNode = (TaskAppNode) splitElementStack.pop();
+		Deque splitElementDeque = splitElementVisitor.getFlowDeque();
+		Deque<Flow> elementFlowDeque = new LinkedList<>();
+		Deque<Flow> resultFlowDeque = new LinkedList<>();
+		while (!splitElementDeque.isEmpty()) {
+			if (splitElementDeque.peek() instanceof TaskAppNode) {
+				TaskAppNode taskAppNode = (TaskAppNode) splitElementDeque.pop();
 				if (taskAppNode.hasTransitions()) {
-					handleTransition(elementFlowStack, taskAppNode);
+					handleTransition(elementFlowDeque, taskAppNode);
 				}
 				else {
-					elementFlowStack.push(
+					elementFlowDeque.push(
 							getTaskAppFlow(taskAppNode));
 				}
 			}
-			else if (splitElementStack.peek() instanceof FlowNode) {
-				handleFlowForSegment(elementFlowStack, resultFlowStack);
-				splitElementStack.pop();
+			else if (splitElementDeque.peek() instanceof FlowNode) {
+				handleFlowForSegment(elementFlowDeque, resultFlowDeque);
+				splitElementDeque.pop();
 			}
 		}
-		return resultFlowStack;
+		return resultFlowDeque;
 	}
 
-	private void handleFlowForSegment(Stack<Flow> executionStack,
-			Stack<Flow> resultStack) {
+	private void handleFlowForSegment(Deque<Flow> executionDeque,
+			Deque<Flow> resultDeque) {
 		boolean isFirst = true;
 		FlowBuilder<Flow> localTaskAppFlowBuilder =
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
-		while (!executionStack.isEmpty()) {
+		while (!executionDeque.isEmpty()) {
 			if (isFirst) {
-				localTaskAppFlowBuilder.start(executionStack.pop());
+				localTaskAppFlowBuilder.start(executionDeque.pop());
 				isFirst = false;
 			}
 			else {
-				localTaskAppFlowBuilder.next(executionStack.pop());
+				localTaskAppFlowBuilder.next(executionDeque.pop());
 			}
 		}
-		resultStack.push(localTaskAppFlowBuilder.end());
+		resultDeque.push(localTaskAppFlowBuilder.end());
 	}
 
-	private void handleTransition(Stack<Flow> executionStack,
+	private void handleTransition(Deque<Flow> executionDeque,
 			TaskAppNode taskAppNode) {
 		String beanName = getBeanName(taskAppNode);
 		Step currentStep = this.context.getBean(beanName, Step.class);
@@ -202,21 +207,21 @@ public class ComposedRunnerJobBuilder {
 			builder.on(transitionNode.getStatusToCheck()).to(transitionStep)
 					.from(currentStep);
 		}
-		if (wildCardPresent && !executionStack.isEmpty()) {
+		if (wildCardPresent && !executionDeque.isEmpty()) {
 			throw new IllegalStateException(
 					"Invalid flow following '*' specifier.");
 		}
 		else {
-			//if there are nodes are in the execution stack.  Make sure that
+			//if there are nodes are in the execution Deque.  Make sure that
 			//they are processed as a target of the wildcard instead of the
 			//whole transition.
-			if (!executionStack.isEmpty()) {
-				Stack<Flow> resultStack = new Stack<>();
-				handleFlowForSegment(executionStack, resultStack);
-				builder.on(WILD_CARD).to(resultStack.pop()).from(currentStep);
+			if (!executionDeque.isEmpty()) {
+				Deque<Flow> resultDeque = new LinkedList<>();
+				handleFlowForSegment(executionDeque, resultDeque);
+				builder.on(WILD_CARD).to(resultDeque.pop()).from(currentStep);
 			}
 		}
-		executionStack.push(builder.end());
+		executionDeque.push(builder.end());
 	}
 
 	private String getBeanName(TransitionNode transition) {

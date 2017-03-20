@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.cloud.task.app</groupId>
 		<artifactId>task-app-starters-core-dependencies</artifactId>
-		<version>1.1.1.BUILD-SNAPSHOT</version>
+		<version>1.2.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<dependencyManagement>
 		<dependencies>

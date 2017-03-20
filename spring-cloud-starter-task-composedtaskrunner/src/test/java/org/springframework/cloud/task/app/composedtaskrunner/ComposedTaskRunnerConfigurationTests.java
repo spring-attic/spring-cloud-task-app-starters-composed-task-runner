@@ -48,13 +48,13 @@ import static org.junit.Assert.assertTrue;
 public class ComposedTaskRunnerConfigurationTests {
 
 	@Autowired
-	JobRepository jobRepository;
+	private JobRepository jobRepository;
 
 	@Autowired
-	Job job;
+	private Job job;
 
 	@Autowired
-	DataFlowTestConfiguration.TestTaskOperations taskOperations;
+	private DataFlowTestConfiguration.TestTaskOperations taskOperations;
 
 	@Test
 	@DirtiesContext

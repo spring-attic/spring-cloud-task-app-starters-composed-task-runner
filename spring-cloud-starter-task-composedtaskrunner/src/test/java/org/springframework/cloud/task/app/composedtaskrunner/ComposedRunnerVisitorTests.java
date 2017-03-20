@@ -79,7 +79,7 @@ public class ComposedRunnerVisitorTests {
 	}
 
 	@Test
-	public void testEmbeededFailedGraph() {
+	public void testEmbeddedFailedGraph() {
 		setupContextForGraph("AAA && failedStep && BBB");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
 		assertEquals(2, stepExecutions.size());

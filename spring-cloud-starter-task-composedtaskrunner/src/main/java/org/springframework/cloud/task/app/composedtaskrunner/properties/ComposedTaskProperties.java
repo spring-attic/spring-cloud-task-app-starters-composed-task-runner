@@ -33,13 +33,13 @@ public class ComposedTaskProperties {
 	 * The maximum amount of time in millis that a individual step can run before
 	 * the execution of the Composed task is failed.
 	 */
-	private int maxWaitTime = 30000;
+	private int maxWaitTime = 0;
 
 	/**
-	 * The amount of time in millis that the ComposedTaskStepExecutionListener
+	 * The amount of time in millis that the ComposedTaskRunner
 	 * will wait between checks of the database to see if a task has completed.
 	 */
-	private int intervalTimeBetweenChecks = 500;
+	private int intervalTimeBetweenChecks = 10000;
 
 	/**
 	 * The URI for the dataflow server that will receive task launch requests.
@@ -60,6 +60,43 @@ public class ComposedTaskProperties {
 	 * The arguments to be used for each of the tasks.
 	 */
 	private String composedTaskArguments;
+
+	/**
+	 * Specifies whether to allow split core threads to timeout.
+	 * Default is false;
+	 */
+	private boolean splitThreadAllowCoreThreadTimeout;
+
+	/**
+	 * Split's core pool size.
+	 * Default is 1;
+	 */
+	private int splitThreadCorePoolSize = 1;
+
+	/**
+	 * Split's thread keep alive seconds.
+	 * Default is 60.
+	 */
+	private int splitThreadKeepAliveSeconds = 60;
+
+	/**
+	 * Split's maximum pool size.
+	 * Default is {@code Integer.MAX_VALUE}.
+	 */
+	private int splitThreadMaxPoolSize = Integer.MAX_VALUE;
+
+	/**
+	 * Capacity for Split's  BlockingQueue.
+	 * Default is {@code Integer.MAX_VALUE}.
+	 */
+	private int splitThreadQueueCapacity = Integer.MAX_VALUE;
+
+	/**
+	 * Whether to wait for scheduled tasks to complete on shutdown, not
+	 * interrupting running tasks and executing all tasks in the queue.
+	 * Default is false;
+	 */
+	private boolean splitThreadWaitForTasksToCompleteOnShutdown;
 
 	public ComposedTaskProperties() {
 		try {
@@ -116,5 +153,53 @@ public class ComposedTaskProperties {
 
 	public void setComposedTaskArguments(String composedTaskArguments) {
 		this.composedTaskArguments = composedTaskArguments;
+	}
+
+	public boolean isSplitThreadAllowCoreThreadTimeout() {
+		return splitThreadAllowCoreThreadTimeout;
+	}
+
+	public void setSplitThreadAllowCoreThreadTimeout(boolean splitThreadAllowCoreThreadTimeout) {
+		this.splitThreadAllowCoreThreadTimeout = splitThreadAllowCoreThreadTimeout;
+	}
+
+	public int getSplitThreadCorePoolSize() {
+		return splitThreadCorePoolSize;
+	}
+
+	public void setSplitThreadCorePoolSize(int splitThreadCorePoolSize) {
+		this.splitThreadCorePoolSize = splitThreadCorePoolSize;
+	}
+
+	public int getSplitThreadKeepAliveSeconds() {
+		return splitThreadKeepAliveSeconds;
+	}
+
+	public void setSplitThreadKeepAliveSeconds(int splitThreadKeepAliveSeconds) {
+		this.splitThreadKeepAliveSeconds = splitThreadKeepAliveSeconds;
+	}
+
+	public int getSplitThreadMaxPoolSize() {
+		return splitThreadMaxPoolSize;
+	}
+
+	public void setSplitThreadMaxPoolSize(int splitThreadMaxPoolSize) {
+		this.splitThreadMaxPoolSize = splitThreadMaxPoolSize;
+	}
+
+	public int getSplitThreadQueueCapacity() {
+		return splitThreadQueueCapacity;
+	}
+
+	public void setSplitThreadQueueCapacity(int splitThreadQueueCapacity) {
+		this.splitThreadQueueCapacity = splitThreadQueueCapacity;
+	}
+
+	public boolean isSplitThreadWaitForTasksToCompleteOnShutdown() {
+		return splitThreadWaitForTasksToCompleteOnShutdown;
+	}
+
+	public void setSplitThreadWaitForTasksToCompleteOnShutdown(boolean splitThreadWaitForTasksToCompleteOnShutdown) {
+		this.splitThreadWaitForTasksToCompleteOnShutdown = splitThreadWaitForTasksToCompleteOnShutdown;
 	}
 }

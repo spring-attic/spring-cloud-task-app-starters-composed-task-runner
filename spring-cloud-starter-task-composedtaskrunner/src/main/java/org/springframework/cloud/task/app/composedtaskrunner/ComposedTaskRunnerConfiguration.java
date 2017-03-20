@@ -26,16 +26,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.cloud.task.configuration.DefaultTaskConfigurer;
 import org.springframework.cloud.task.configuration.EnableTask;
-import org.springframework.cloud.task.repository.TaskExplorer;
-import org.springframework.cloud.task.repository.TaskRepository;
-import org.springframework.cloud.task.repository.support.SimpleTaskExplorer;
-import org.springframework.cloud.task.repository.support.SimpleTaskRepository;
-import org.springframework.cloud.task.repository.support.TaskExecutionDaoFactoryBean;
+import org.springframework.cloud.task.configuration.TaskConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
 
 /**
@@ -54,27 +53,23 @@ public class ComposedTaskRunnerConfiguration {
 	private JobBuilderFactory jobs;
 
 	@Autowired
-	private DataSource dataSource;
-
-	@Autowired
 	private ComposedTaskProperties properties;
 
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private DataSource dataSource;
+
 	@Bean
-	public TaskRepository taskRepository() {
-		return new SimpleTaskRepository(new TaskExecutionDaoFactoryBean(this.dataSource));
+	public TaskConfigurer taskConfigurer() {
+		return new DefaultTaskConfigurer(this.dataSource);
 	}
 
 	@Bean
-	public TaskExplorer taskExplorer() {
-		return new SimpleTaskExplorer(new TaskExecutionDaoFactoryBean(this.dataSource));
-	}
-
-	@Bean
-	public StepExecutionListener composedTaskStepExecutionListener() {
-		return new ComposedTaskStepExecutionListener(taskExplorer());
+	public StepExecutionListener composedTaskStepExecutionListener(
+			TaskConfigurer taskConfigurer) {
+		return new ComposedTaskStepExecutionListener(taskConfigurer.getTaskExplorer());
 	}
 
 
@@ -98,14 +93,28 @@ public class ComposedTaskRunnerConfiguration {
 		return composedRunnerVisitor;
 	}
 
-	 private String getTaskName() {
+	@Bean
+	public TaskExecutor taskExecutor() {
+		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+		taskExecutor.setCorePoolSize(properties.getSplitThreadCorePoolSize());
+		taskExecutor.setMaxPoolSize(properties.getSplitThreadMaxPoolSize());
+		taskExecutor.setKeepAliveSeconds(properties.getSplitThreadKeepAliveSeconds());
+		taskExecutor.setAllowCoreThreadTimeOut(
+				properties.isSplitThreadAllowCoreThreadTimeout());
+		taskExecutor.setQueueCapacity(properties.getSplitThreadQueueCapacity());
+		taskExecutor.setWaitForTasksToCompleteOnShutdown(
+				properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
+		return taskExecutor;
+	}
+
+	private String getTaskName() {
 		String configuredName = this.context.getEnvironment().
 				getProperty("spring.cloud.task.name");
-		 if (StringUtils.hasText(configuredName)) {
-			 return configuredName;
-		 }
-		 else {
-			 return this.context.getId();
-		 }
-	 }
+		if (StringUtils.hasText(configuredName)) {
+			return configuredName;
+		}
+		else {
+			return this.context.getId();
+		}
+	}
 }

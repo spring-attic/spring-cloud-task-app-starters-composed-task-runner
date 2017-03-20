@@ -27,6 +27,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.cloud.task.configuration.TaskConfigurer;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -60,7 +61,7 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 	private TaskOperations taskOperations;
 
 	@Autowired
-	private TaskExplorer taskExplorer;
+	private TaskConfigurer taskConfigurer;
 
 	public ComposedTaskRunnerStepFactory(
 			ComposedTaskProperties composedTaskProperties, String taskName,
@@ -79,7 +80,7 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 	@Override
 	public Step getObject() throws Exception {
 		TaskLauncherTasklet taskLauncherTasklet = new TaskLauncherTasklet(
-				this.taskOperations, this.taskExplorer,
+				this.taskOperations, taskConfigurer.getTaskExplorer(),
 				this.composedTaskProperties, this.taskName, this.taskSpecificProps,
 				this.arguments);
 		String stepName = String.format("%s_%s",this.taskName,

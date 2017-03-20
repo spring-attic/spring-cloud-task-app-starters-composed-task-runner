@@ -40,6 +40,8 @@ import org.springframework.cloud.task.app.composedtaskrunner.properties.Composed
 import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -62,7 +64,7 @@ public class ComposedRunnerVisitorConfiguration {
 	private ComposedTaskProperties composedTaskProperties;
 
 	@Bean
-	ComposedRunnerJobBuilder getComposedJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
+	public ComposedRunnerJobBuilder getComposedJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
 		ComposedTaskParser taskParser = new ComposedTaskParser();
 		taskParser.parse("atest", this.composedTaskProperties.getGraph())
 				.accept(composedRunnerVisitor);
@@ -181,6 +183,11 @@ public class ComposedRunnerVisitorConfiguration {
 		};
 	}
 
+
+	@Bean
+	public TaskExecutor taskExecutor() {
+		return new ThreadPoolTaskExecutor();
+	}
 
 	private Step createTaskletStepWithListener(final String taskName,
 			StepExecutionListener stepExecutionListener) {

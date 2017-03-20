@@ -21,6 +21,28 @@ the Spring Cloud Data Flow server referenced by the data-flow-uri
 These definitions can be placed into a derived graph based on a DSL through
 the use of sequences, transitions, splits, or a combination therein.
 
+== Traversing the graph
+Composed Task Runner is built using
+http://docs.spring.io/spring-batch/reference/html/[Spring Batch]
+to execute the directed graph.   As such each node in the graph is a
+http://docs.spring.io/spring-batch/reference/html/domain.html#domainStep[Step].
+As discussed in the overview, each step in the graph will post a request to a
+Spring Cloud Data Flow Server to execute a task definition.  If the task launched by
+the step fails to complete within the time specified by the `max-wait-time`
+property, the
+http://docs.spring.io/spring-batch/trunk/apidocs/org/springframework/batch/core/ExitStatus.html[ExitStatus]
+of the Step will be set to UNKNOWN.  Once task launched by the step completes,
+the ComposedTaskRunner will set the `ExitStatus` of that step based on the following rules:
+
+* If the TaskExecution has an ExitMessage that will be used as the `ExitStatus`
+* If no ExitMessage is present and the ExitCode is set to 0 then the `ExitStatus`
+for the step will be COMPLETED.
+* If no ExitMessage is present and the ExitCode is set to 1 then the `ExitStatus`
+for the step will be FAILED.
+
+If the state of any step in the graph is set to  FAILED and is not handled by
+the DSL the Directed Graph execution will terminate.
+
 === Sequences
 The Composed Task Runner supports the ability to traverse sequences of task
 definitions.  This is represented by a task definition name followed by the
@@ -30,23 +52,29 @@ will look  like this:
 ```
 AAA && BBB && CCC
 ```
+image::images/basicsequence.png[basic sequence]
+
 You can execute the same task multiple times in a sequence.  For example:
 ```
 AAA && AAA && AAA
 ```
-If an ExitStatus 'FAILED' is returned in a sequence the Composed Task
+image::images/samejobsequence.png[basic sequence with repeated job definition]
+
+If an `ExitStatus` 'FAILED' is returned in a sequence the Composed Task
 Runner will terminate.  For example if `AAA && BBB && CCC` composed task is
 executed and BBB fails.  Then CCC will not be launched.
 
 === Transitions
 The Composed Task Runner supports the ability to control what tasks get
-executed based on the ExitStatus of the previous task.  This is
-done by specifying ExitStatus after the task definition followed by
+executed based on the `ExitStatus` of the previous task.  This is
+done by specifying `ExitStatus` after the task definition followed by
 the `->` operator and the task definition that should be launched based on
 the result.  For example:
 ```
 AAA 'FAILED' -> BBB 'COMPLETED' -> CCC
 ```
+image::images/basictransition.png[basic transition]
+
 Will launch AAA and if AAA fails then BBB will be launched.  Else if AAA
 completes successfully then CCC will launch.
 
@@ -54,8 +82,10 @@ You can also have a sequence that follows a transition.  For example:
 ```
 AAA 'FAILED' -> BBB && CCC && DDD
 ```
-Will launch AAA and for any ExitStatus that is returned other than 'FAILED' then
-CCC && DDD  will be launched.   However if AAA returns 'FAILED' then BBB will
+image::images/basictransitionwithsequence.png[basic transition with sequence]
+
+Will launch AAA and for any `ExitStatus` that is returned other than 'FAILED' then
+CCC && DDD  will be launched.  However if AAA returns 'FAILED' then BBB will
 be launched, but CCC && DDD will not.
 
 ==== Wildcard
@@ -64,7 +94,9 @@ For example:
 ```
 AAA 'FAILED' -> BBB '*'->CCC
 ```
-In the case above AAA will launch and any ExitStatus other than FAILED will
+image::images/basictransitionwithwildcard.png[basic transition with wildcard]
+
+In the case above AAA will launch and any `ExitStatus` other than FAILED will
 launch CCC.
 
 === Splits
@@ -73,44 +105,21 @@ For example:
 ```
 <AAA || BBB || CCC>
 ```
+image::images/basicsplit.png[basic split]
+
 Will launch AAA, BBB and CCC in parallel.   When launching splits as a part of a
 composed task all elements of the split must finish successfully before the
 next task definition can be launched for example:
 ```
 <AAA || BBB || CCC> && DDD && EEE
 ```
+image::images/basicsplitwithsequence.png[basic split with sequence]
+
 In the case above once AAA, BBB and CCC complete sucessfully then DDD and EEE
 will be launched in the sequence enumerated above.  However if one of the task
 definitions fails in the split then DDD and EEE will not fire.  For example if
 BBB fails then AAA and CCC will be marked successful and BBB will be marked a
 failure and DDD and EEE will not be launched.
-
-== Traversing the graph
-Composed Task Runner is built using
-http://docs.spring.io/spring-batch/reference/html/[Spring Batch]
-to execute the directed graph.   As such each node in the graph is a
-http://docs.spring.io/spring-batch/reference/html/domain.html#domainStep[Step].
-As discussed in the overview, each step in the graph will post a request to a
-Spring Cloud Data Flow Server to execute a task definition.  Each Step has a
-ComposedTaskStepExecutionListener associated with it, such that once the step
-has been executed the
-http://docs.spring.io/spring-batch/reference/htmlsingle/#stepExecutionListener[StepExecutionListener]
-monitors the database awaiting the task to complete.  If the task launched by
-the step fails to complete within the time specified by the `max-wait-time`
-property, the
-http://docs.spring.io/spring-batch/trunk/apidocs/org/springframework/batch/core/ExitStatus.html[ExitStatus]
-of the Step will be set to UNKNOWN.  Once task launched by the step completes,
-the StepExecutionListener will set the ExitStatus of that step based on the following rules:
-
-* If the TaskExecution has an ExitMessage that will be used as the ExitStatus
-* If no ExitMessage is present and the ExitCode is set to 0 then the ExitStatus
-for the step will be COMPLETED.
-* If no ExitMessage is present and the ExitCode is set to 1 then the ExitStatus
-for the step will be FAILED.
-
-If the state of any step in the graph is set to  FAILED and is not handled by
-the DSL the Directed Graph execution will terminate.
-
 
 == Usage
 `java -jar composedtaskrunner-task-1.0.0.BUILD-SNAPSHOT.jar --graph=<your graph syntax>`
@@ -125,10 +134,23 @@ $$composed-task-arguments$$:: $$The arguments to be used for each of the tasks.$
 $$composed-task-properties$$:: $$The properties to be used for each of the tasks as well as their deployments.$$ *($$String$$, default: `$$<none>$$`)*
 $$data-flow-uri$$:: $$The URI for the dataflow server that will receive task launch requests.$$ *($$URI$$, default: `$$<none>$$`)*
 $$graph$$:: $$The DSL for the composed task directed graph.$$ *($$String$$, default: `$$<none>$$`)*
-$$interval-time-between-checks$$:: $$The amount of time in millis that the ComposedTaskStepExecutionListener
- will wait between checks of the database to see if a task has completed.$$ *($$Integer$$, default: `$$500$$`)*
+$$interval-time-between-checks$$:: $$The amount of time in millis that the ComposedTaskRunner
+ will wait between checks of the database to see if a task has completed.$$ *($$Integer$$, default: `$$10000$$`)*
 $$max-wait-time$$:: $$The maximum amount of time in millis that a individual step can run before
- the execution of the Composed task is failed.$$ *($$Integer$$, default: `$$30000$$`)*
+ the execution of the Composed task is failed.$$ *($$Integer$$, default: `$$0$$`)*
+$$split-thread-allow-core-thread-timeout$$:: $$Specifies whether to allow split core threads to timeout.
+ Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
+$$split-thread-core-pool-size$$:: $$Split's core pool size.
+ Default is 1;$$ *($$Integer$$, default: `$$1$$`)*
+$$split-thread-keep-alive-seconds$$:: $$Split's thread keep alive seconds.
+ Default is 60.$$ *($$Integer$$, default: `$$60$$`)*
+$$split-thread-max-pool-size$$:: $$Split's maximum pool size.
+ Default is {@code Integer.MAX_VALUE}.$$ *($$Integer$$, default: `$$<none>$$`)*
+$$split-thread-queue-capacity$$:: $$Capacity for Split's  BlockingQueue.
+ Default is {@code Integer.MAX_VALUE}.$$ *($$Integer$$, default: `$$<none>$$`)*
+$$split-thread-wait-for-tasks-to-complete-on-shutdown$$:: $$Whether to wait for scheduled tasks to complete on shutdown, not
+ interrupting running tasks and executing all tasks in the queue.
+ Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
 //end::configuration-properties[]
 
 //end::ref-doc[]

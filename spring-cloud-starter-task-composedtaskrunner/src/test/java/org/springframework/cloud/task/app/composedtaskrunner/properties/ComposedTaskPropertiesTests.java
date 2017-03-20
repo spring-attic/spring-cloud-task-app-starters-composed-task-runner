@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Glenn Renfro
@@ -44,5 +45,17 @@ public class ComposedTaskPropertiesTests {
 		assertEquals(6789, properties.getMaxWaitTime());
 		assertEquals("http://test", properties.getDataFlowUri().toString());
 		assertEquals("ddd", properties.getGraph());
+
+	}
+
+	@Test
+	public void testThreadDefaults() {
+		ComposedTaskProperties properties = new ComposedTaskProperties();
+		assertEquals(1, properties.getSplitThreadCorePoolSize());
+		assertEquals(60, properties.getSplitThreadKeepAliveSeconds());
+		assertEquals(Integer.MAX_VALUE, properties.getSplitThreadMaxPoolSize());
+		assertEquals(Integer.MAX_VALUE, properties.getSplitThreadQueueCapacity());
+		assertFalse(properties.isSplitThreadAllowCoreThreadTimeout());
+		assertFalse(properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
 	}
 }

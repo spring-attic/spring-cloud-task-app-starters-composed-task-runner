@@ -21,9 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -54,8 +51,6 @@ public class TaskLauncherTasklet implements Tasklet {
 	private List<String> arguments;
 
 	private String taskName;
-
-	private static final Log logger = LogFactory.getLog(TaskLauncherTasklet.class);
 
 	public TaskLauncherTasklet(
 			TaskOperations taskOperations, TaskExplorer taskExplorer,
@@ -121,7 +116,8 @@ public class TaskLauncherTasklet implements Tasklet {
 		long timeout = System.currentTimeMillis() +
 				this.composedTaskProperties.getMaxWaitTime();
 		boolean isComplete = false;
-		while (!isComplete && System.currentTimeMillis() < timeout) {
+		boolean isSuccessful = false;
+		while (!isComplete) {
 			try {
 				Thread.sleep(this.composedTaskProperties.getIntervalTimeBetweenChecks());
 			}
@@ -133,10 +129,15 @@ public class TaskLauncherTasklet implements Tasklet {
 					this.taskExplorer.getTaskExecution(taskExecutionId);
 			if(taskExecution != null && taskExecution.getEndTime() != null) {
 				isComplete = true;
+				isSuccessful = true;
 			}
-
+			long t = System.currentTimeMillis();
+			if(this.composedTaskProperties.getMaxWaitTime() > 0 &&
+					System.currentTimeMillis() > timeout) {
+				isComplete = true;
+			}
 		}
-		return isComplete;
+		return isSuccessful;
 	}
 
 }

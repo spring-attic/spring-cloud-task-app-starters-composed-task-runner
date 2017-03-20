@@ -32,9 +32,6 @@ import org.mockito.Mockito;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +41,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.cloud.task.configuration.DefaultTaskConfigurer;
+import org.springframework.cloud.task.configuration.TaskConfigurer;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.cloud.task.repository.TaskRepository;
@@ -51,7 +50,6 @@ import org.springframework.cloud.task.repository.support.SimpleTaskExplorer;
 import org.springframework.cloud.task.repository.support.SimpleTaskRepository;
 import org.springframework.cloud.task.repository.support.TaskExecutionDaoFactoryBean;
 import org.springframework.cloud.task.repository.support.TaskRepositoryInitializer;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.Link;
@@ -80,22 +78,10 @@ public class TaskLauncherTaskletTests {
 	private DataSource dataSource;
 
 	@Autowired
-	JobBuilderFactory jobs;
+	private ComposedTaskProperties composedTaskProperties;
 
 	@Autowired
-	StepBuilderFactory steps;
-
-	@Autowired
-	ComposedTaskProperties composedTaskProperties;
-
-	@Autowired
-	TaskRepositoryInitializer taskRepositoryInitializer;
-
-	@Autowired
-	JobRepository jobRepository;
-
-	@Autowired
-	ApplicationContext context;
+	private TaskRepositoryInitializer taskRepositoryInitializer;
 
 	private TaskOperations taskOperations;
 
@@ -114,6 +100,7 @@ public class TaskLauncherTaskletTests {
 				new TaskExecutionDaoFactoryBean(this.dataSource);
 		this.taskRepository = new SimpleTaskRepository(taskExecutionDaoFactoryBean);
 		this.taskExplorer = new SimpleTaskExplorer(taskExecutionDaoFactoryBean);
+		composedTaskProperties.setIntervalTimeBetweenChecks(500);
 	}
 
 	@Test
@@ -242,5 +229,6 @@ public class TaskLauncherTaskletTests {
 		TaskRepositoryInitializer taskRepositoryInitializer() {
 			return new TaskRepositoryInitializer();
 		}
+
 	}
 }

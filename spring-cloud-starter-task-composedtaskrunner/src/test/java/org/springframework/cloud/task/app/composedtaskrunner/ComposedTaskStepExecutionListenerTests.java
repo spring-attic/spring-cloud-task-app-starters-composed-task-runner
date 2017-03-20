@@ -38,14 +38,13 @@ import static org.mockito.Mockito.when;
  */
 public class ComposedTaskStepExecutionListenerTests {
 
-
 	private TaskExplorer taskExplorer;
 
 	private ComposedTaskProperties properties;
 
 	private StepExecution stepExecution;
 
-	ComposedTaskStepExecutionListener taskListener;
+	private ComposedTaskStepExecutionListener taskListener;
 
 	@Before
 	public void setup() {

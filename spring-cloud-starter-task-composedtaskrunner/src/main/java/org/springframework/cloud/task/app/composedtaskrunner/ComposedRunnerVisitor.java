@@ -16,7 +16,8 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
-import java.util.Stack;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +34,7 @@ import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
  */
 public class ComposedRunnerVisitor extends ComposedTaskVisitor {
 
-	private Stack flowStack = new Stack();
+	private Deque flowDeque = new LinkedList();
 
 	private static final Log logger = LogFactory.getLog(ComposedRunnerVisitor.class);
 
@@ -45,7 +46,7 @@ public class ComposedRunnerVisitor extends ComposedTaskVisitor {
 	 */
 	public boolean preVisit(FlowNode flow) {
 		logger.debug("Pre Visit Flow:  " + flow);
-		this.flowStack.push(flow);
+		this.flowDeque.push(flow);
 		return true;
 	}
 
@@ -57,7 +58,7 @@ public class ComposedRunnerVisitor extends ComposedTaskVisitor {
 	 */
 	public void visit(SplitNode split) {
 		logger.debug("Visit Split:  " + split);
-		this.flowStack.push(split);
+		this.flowDeque.push(split);
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class ComposedRunnerVisitor extends ComposedTaskVisitor {
 	 */
 	public void postVisit(SplitNode split) {
 		logger.debug("Post Visit Split:  " + split);
-		this.flowStack.push(split);
+		this.flowDeque.push(split);
 	}
 
 	/**
@@ -79,11 +80,11 @@ public class ComposedRunnerVisitor extends ComposedTaskVisitor {
 	 */
 	public void visit(TaskAppNode taskApp) {
 		logger.debug("Visit taskApp:  " + taskApp);
-		this.flowStack.push(taskApp);
+		this.flowDeque.push(taskApp);
 	}
 
-	public Stack getFlowStack() {
-		return this.flowStack;
+	public Deque getFlowDeque() {
+		return this.flowDeque;
 	}
 
 }
