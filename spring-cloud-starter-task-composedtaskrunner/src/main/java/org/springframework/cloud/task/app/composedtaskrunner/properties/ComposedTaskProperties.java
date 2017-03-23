@@ -43,6 +43,7 @@ public class ComposedTaskProperties {
 
 	/**
 	 * The URI for the dataflow server that will receive task launch requests.
+	 * Default is http://localhost:9393;
 	 */
 	private URI dataFlowUri;
 

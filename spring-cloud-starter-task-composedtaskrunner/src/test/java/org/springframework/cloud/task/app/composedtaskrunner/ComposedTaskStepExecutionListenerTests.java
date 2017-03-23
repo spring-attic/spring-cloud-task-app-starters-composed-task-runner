@@ -65,15 +65,6 @@ public class ComposedTaskStepExecutionListenerTests {
 	}
 
 	@Test
-	public void testTimeoutRun() {
-		TaskExecution taskExecution = new TaskExecution();
-		this.properties.setMaxWaitTime(1000);
-		when(this.taskExplorer.getTaskExecution(anyLong())).thenReturn(taskExecution);
-		populateExecutionContext(111L);
-		assertEquals(ExitStatus.UNKNOWN, this.taskListener.afterStep(this.stepExecution));
-	}
-
-	@Test
 	public void testExitMessageRunSuccess() {
 		ExitStatus expectedTaskStatus = new ExitStatus("TEST_EXIT_MESSAGE");
 		TaskExecution taskExecution = getDefaultTaskExecution(0,
@@ -93,17 +84,6 @@ public class ComposedTaskStepExecutionListenerTests {
 		populateExecutionContext(111L);
 
 		assertEquals(expectedTaskStatus, this.taskListener.afterStep(this.stepExecution));
-	}
-
-	@Test
-	public void testExitMessageRunTimeout() {
-		TaskExecution taskExecution = new TaskExecution();
-		taskExecution.setExitMessage("TEST_EXIT_MESSAGE");
-		when(this.taskExplorer.getTaskExecution(anyLong())).thenReturn(taskExecution);
-		populateExecutionContext(111L);
-		this.properties.setMaxWaitTime(1000);
-
-		assertEquals(ExitStatus.UNKNOWN, this.taskListener.afterStep(this.stepExecution));
 	}
 
 	@Test

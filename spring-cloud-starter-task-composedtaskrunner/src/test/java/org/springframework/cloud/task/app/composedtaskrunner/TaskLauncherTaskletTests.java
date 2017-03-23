@@ -41,8 +41,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.cloud.task.configuration.DefaultTaskConfigurer;
-import org.springframework.cloud.task.configuration.TaskConfigurer;
+import org.springframework.cloud.task.app.composedtaskrunner.support.TimeoutException;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.cloud.task.repository.TaskRepository;
@@ -59,8 +58,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -126,17 +127,21 @@ public class TaskLauncherTaskletTests {
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTaskletTimeout() throws Exception {
+		boolean isException = false;
 		mockReturnValForTaskExecution(1L);
 		this.composedTaskProperties.setMaxWaitTime(1000);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
+		long taskExecutionId = 0l;
+		try {
 		taskLauncherTasklet.execute(null, chunkContext);
-		long taskExecutionId = (Long)chunkContext.getStepContext()
-				.getStepExecution().getExecutionContext()
-				.get("task-execution-id");
-		assertEquals(1L, taskExecutionId);
-		TaskExecution taskExecution = this.taskExplorer.getTaskExecution(taskExecutionId);
-		assertNull(taskExecution.getExitMessage());
+		}
+		catch (TimeoutException te) {
+			isException = true;
+			assertThat(te.getMessage(),is(equalTo("Timeout occurred while " +
+					"processing task with Execution Id 1")));
+		}
+		assertThat(isException,is(true));
 	}
 	@Test
 	@DirtiesContext

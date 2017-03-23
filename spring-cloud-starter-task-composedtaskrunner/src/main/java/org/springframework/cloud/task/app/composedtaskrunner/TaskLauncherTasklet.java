@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -28,6 +31,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.cloud.task.app.composedtaskrunner.support.TimeoutException;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.util.Assert;
@@ -51,6 +55,9 @@ public class TaskLauncherTasklet implements Tasklet {
 	private List<String> arguments;
 
 	private String taskName;
+
+	private static final Log logger = LogFactory.getLog(TaskLauncherTasklet.class);
+
 
 	public TaskLauncherTasklet(
 			TaskOperations taskOperations, TaskExplorer taskExplorer,
@@ -108,7 +115,11 @@ public class TaskLauncherTasklet implements Tasklet {
 					.put("task-execution-id", executionId);
 		stepExecutionContext.put("task-arguments", args);
 
-		waitForTaskToComplete(executionId);
+		if(!waitForTaskToComplete(executionId)) {
+			throw new TimeoutException(String.format(
+					"Timeout occurred while processing task with Execution Id %s",
+					executionId));
+		}
 		return RepeatStatus.FINISHED;
 	}
 
@@ -117,6 +128,11 @@ public class TaskLauncherTasklet implements Tasklet {
 				this.composedTaskProperties.getMaxWaitTime();
 		boolean isComplete = false;
 		boolean isSuccessful = false;
+		logger.debug("Wait time for this task to complete is " +
+				this.composedTaskProperties.getMaxWaitTime());
+		logger.debug("Interval check time for this task to complete is " +
+				this.composedTaskProperties.getIntervalTimeBetweenChecks());
+
 		while (!isComplete) {
 			try {
 				Thread.sleep(this.composedTaskProperties.getIntervalTimeBetweenChecks());

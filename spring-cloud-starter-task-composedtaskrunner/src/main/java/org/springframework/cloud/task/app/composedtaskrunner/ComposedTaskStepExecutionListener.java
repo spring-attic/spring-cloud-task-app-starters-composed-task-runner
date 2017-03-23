@@ -67,10 +67,7 @@ public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupp
 				"exists.");
 
 		TaskExecution resultExecution = this.taskExplorer.getTaskExecution(Long.valueOf(executionId));
-		if (resultExecution.getEndTime() == null) {
-			result = ExitStatus.UNKNOWN;
-		}
-		else if (!StringUtils.isEmpty(resultExecution.getExitMessage())) {
+		if (!StringUtils.isEmpty(resultExecution.getExitMessage())) {
 			result = new ExitStatus(resultExecution.getExitMessage());
 		}
 		else if (resultExecution.getExitCode() != 0) {
