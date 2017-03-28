@@ -24,7 +24,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
+import org.springframework.cloud.dataflow.core.dsl.TaskParser;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.DefaultTaskConfigurer;
 import org.springframework.cloud.task.configuration.EnableTask;
@@ -76,8 +76,9 @@ public class ComposedTaskRunnerConfiguration {
 	@Bean
 	public ComposedRunnerJobBuilder composedRunnerJobBuilder(
 			ComposedRunnerVisitor composedRunnerVisitor) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
-		taskParser.parse("aname", this.properties.getGraph()).accept(composedRunnerVisitor);
+		TaskParser taskParser = new TaskParser("composed-task-runner",
+				this.properties.getGraph(),false,true);
+		taskParser.parse().accept(composedRunnerVisitor);
 		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
 	}
 

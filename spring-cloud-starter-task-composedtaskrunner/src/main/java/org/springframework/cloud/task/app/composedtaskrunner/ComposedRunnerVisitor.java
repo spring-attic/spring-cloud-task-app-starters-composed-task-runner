@@ -22,17 +22,17 @@ import java.util.LinkedList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskVisitor;
 import org.springframework.cloud.dataflow.core.dsl.FlowNode;
 import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
+import org.springframework.cloud.dataflow.core.dsl.TaskVisitor;
 
 /**
  * Creates a stack of task executions from a composed task DSL.
  *
  * @author Glenn Renfro.
  */
-public class ComposedRunnerVisitor extends ComposedTaskVisitor {
+public class ComposedRunnerVisitor extends TaskVisitor {
 
 	private Deque flowDeque = new LinkedList();
 

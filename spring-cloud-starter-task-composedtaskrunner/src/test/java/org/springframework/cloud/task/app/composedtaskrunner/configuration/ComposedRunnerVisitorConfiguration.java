@@ -32,8 +32,9 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskValidatorVisitor;
+import org.springframework.cloud.dataflow.core.dsl.TaskNode;
+import org.springframework.cloud.dataflow.core.dsl.TaskParser;
+import org.springframework.cloud.dataflow.core.dsl.TaskValidatorVisitor;
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerJobBuilder;
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerVisitor;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
@@ -65,19 +66,20 @@ public class ComposedRunnerVisitorConfiguration {
 
 	@Bean
 	public ComposedRunnerJobBuilder getComposedJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
-		taskParser.parse("atest", this.composedTaskProperties.getGraph())
-				.accept(composedRunnerVisitor);
-		taskParser.parse("atest", this.composedTaskProperties.getGraph())
-				.getTaskApps();
+		TaskParser taskParser = new TaskParser("atest",
+				this.composedTaskProperties.getGraph(), false, true);
+		TaskNode taskNode = taskParser.parse();
+		taskNode.accept(composedRunnerVisitor);
+		taskNode.getTaskApps();
 		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
 	}
 
 	@Bean
 	public Job job(ComposedRunnerJobBuilder composedRunnerJobBuilder) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
-		taskParser.parse("atest", this.composedTaskProperties.getGraph())
-				.accept(new ComposedTaskValidatorVisitor());
+		TaskParser taskParser = new TaskParser("atest",
+				this.composedTaskProperties.getGraph(), false, true);
+		taskParser.parse()
+				.accept(new TaskValidatorVisitor());
 
 		return this.jobBuilderFactory.get("job")
 				.start(composedRunnerJobBuilder.getFlowBuilder().end()).end()

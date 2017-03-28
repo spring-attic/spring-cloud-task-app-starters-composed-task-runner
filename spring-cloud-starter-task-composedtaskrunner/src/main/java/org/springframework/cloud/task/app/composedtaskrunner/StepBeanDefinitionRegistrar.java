@@ -23,9 +23,9 @@ import java.util.Map;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskVisitor;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
+import org.springframework.cloud.dataflow.core.dsl.TaskParser;
+import org.springframework.cloud.dataflow.core.dsl.TaskVisitor;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.PropertyUtility;
@@ -49,10 +49,10 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
 			BeanDefinitionRegistry registry) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
 		ComposedTaskProperties properties = composedTaskProperties();
-		Map<String, Integer> taskSuffixMap = getTaskApps(taskParser,
-				properties.getGraph());
+		TaskParser taskParser = new TaskParser("bean-registration",
+				properties.getGraph(), false, true);
+		Map<String, Integer> taskSuffixMap = getTaskApps(taskParser);
 		for (String taskName : taskSuffixMap.keySet()) {
 			//handles the possibility that multiple instances of
 			// task definition exist in a composed task
@@ -113,10 +113,9 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 	/**
 	 * @return all the apps referenced in the composed task.
 	 */
-	private Map<String, Integer> getTaskApps(ComposedTaskParser taskParser,
-			String graph) {
+	private Map<String, Integer> getTaskApps(TaskParser taskParser) {
 		TaskAppsMapCollector collector = new TaskAppsMapCollector();
-		taskParser.parse("aname", graph).accept(collector);
+		taskParser.parse().accept(collector);
 		Map<String, Integer> taskApps = collector.getTaskApps();
 		return taskApps;
 	}
@@ -125,7 +124,7 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 	 * Simple visitor that discovers all the tasks in use in the composed
 	 * task definition.
 	 */
-	static class TaskAppsMapCollector extends ComposedTaskVisitor {
+	static class TaskAppsMapCollector extends TaskVisitor {
 
 		Map<String, Integer> taskApps = new HashMap<>();
 
@@ -145,10 +144,10 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 			if (transition.isTargetApp()) {
 				if (taskApps.containsKey(transition.getTargetApp())) {
 					Integer updatedCount = taskApps.get(transition.getTargetApp()) + 1;
-					taskApps.put(transition.getTargetApp(), updatedCount);
+					taskApps.put(transition.getTargetApp().getName(), updatedCount);
 				}
 				else {
-					taskApps.put(transition.getTargetApp(), 0);
+					taskApps.put(transition.getTargetApp().getName(), 0);
 				}
 			}
 		}

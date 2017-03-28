@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
-import org.springframework.cloud.dataflow.rest.resource.ComposedTaskResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskDefinitionResource;
 import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.context.annotation.Bean;
@@ -51,10 +50,6 @@ public class DataFlowTestConfiguration {
 
 		@Override
 		public TaskDefinitionResource create(String name, String definition) {
-			return null;
-		}
-
-		public ComposedTaskResource compose(String name, String definition) {
 			return null;
 		}
 

@@ -28,11 +28,11 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.dataflow.core.dsl.ComposedTaskParser;
 import org.springframework.cloud.dataflow.core.dsl.FlowNode;
-import org.springframework.cloud.dataflow.core.dsl.LabelledComposedTaskNode;
+import org.springframework.cloud.dataflow.core.dsl.LabelledTaskNode;
 import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
+import org.springframework.cloud.dataflow.core.dsl.TaskParser;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
@@ -122,7 +122,7 @@ public class ComposedRunnerJobBuilder {
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
 		List<Flow> flows = new ArrayList<>();
 		//For each node in the split process it as a DSL flow.
-		for (LabelledComposedTaskNode taskNode : splitNode.getSeries()) {
+		for (LabelledTaskNode taskNode : splitNode.getSeries()) {
 			Deque<Flow> elementFlowDeque = processSplitFlow(taskNode);
 			while (!elementFlowDeque.isEmpty()) {
 				flows.add(elementFlowDeque.pop());
@@ -147,10 +147,11 @@ public class ComposedRunnerJobBuilder {
 	 * @param node represents a single node in the split.
 	 * @return Deque of Job Flows that was obtained from the Node.
 	 */
-	private Deque<Flow> processSplitFlow(LabelledComposedTaskNode node) {
-		ComposedTaskParser taskParser = new ComposedTaskParser();
+	private Deque<Flow> processSplitFlow(LabelledTaskNode node) {
+		TaskParser taskParser = new TaskParser("split_flow", node.stringify(),
+				false, true);
 		ComposedRunnerVisitor splitElementVisitor = new ComposedRunnerVisitor();
-		taskParser.parse("aname", node.stringify()).accept(splitElementVisitor);
+		taskParser.parse().accept(splitElementVisitor);
 		Deque splitElementDeque = splitElementVisitor.getFlowDeque();
 		Deque<Flow> elementFlowDeque = new LinkedList<>();
 		Deque<Flow> resultFlowDeque = new LinkedList<>();
