@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
@@ -41,10 +38,9 @@ public class DataFlowConfiguration {
 
 	@Bean
 	public TaskOperations taskOperations() {
-		TaskOperations taskOperations = null;
 		DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(
 				this.properties.getDataFlowUri());
-		taskOperations = dataFlowTemplate.taskOperations();
-		return taskOperations;
+
+		return dataFlowTemplate.taskOperations();
 	}
 }

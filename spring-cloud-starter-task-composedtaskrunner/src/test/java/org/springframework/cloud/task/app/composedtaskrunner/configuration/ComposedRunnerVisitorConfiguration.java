@@ -16,26 +16,19 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 
-import java.util.Set;
-
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.dataflow.core.dsl.TaskNode;
-import org.springframework.cloud.dataflow.core.dsl.TaskParser;
-import org.springframework.cloud.dataflow.core.dsl.TaskValidatorVisitor;
-import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerJobBuilder;
+import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerJobFactory;
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerVisitor;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.EnableTask;
@@ -55,8 +48,6 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 @EnableTask
 @EnableConfigurationProperties(ComposedTaskProperties.class)
 public class ComposedRunnerVisitorConfiguration {
-	@Autowired
-	private JobBuilderFactory jobBuilderFactory;
 
 	@Autowired
 	private StepBuilderFactory steps;
@@ -65,31 +56,13 @@ public class ComposedRunnerVisitorConfiguration {
 	private ComposedTaskProperties composedTaskProperties;
 
 	@Bean
-	public ComposedRunnerJobBuilder getComposedJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
-		TaskParser taskParser = new TaskParser("atest",
-				this.composedTaskProperties.getGraph(), false, true);
-		TaskNode taskNode = taskParser.parse();
-		taskNode.accept(composedRunnerVisitor);
-		taskNode.getTaskApps();
-		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
-	}
-
-	@Bean
-	public Job job(ComposedRunnerJobBuilder composedRunnerJobBuilder) {
-		TaskParser taskParser = new TaskParser("atest",
-				this.composedTaskProperties.getGraph(), false, true);
-		taskParser.parse()
-				.accept(new TaskValidatorVisitor());
-
-		return this.jobBuilderFactory.get("job")
-				.start(composedRunnerJobBuilder.getFlowBuilder().end()).end()
-				.build();
+	public ComposedRunnerJobFactory job() {
+		return new ComposedRunnerJobFactory(this.composedTaskProperties.getGraph());
 	}
 
 	@Bean
 	public ComposedRunnerVisitor composedRunnerStack() {
-		ComposedRunnerVisitor composedRunnerVisitor = new ComposedRunnerVisitor();
-		return composedRunnerVisitor;
+		return new ComposedRunnerVisitor();
 	}
 
 	@Bean
@@ -193,7 +166,7 @@ public class ComposedRunnerVisitorConfiguration {
 
 	private Step createTaskletStepWithListener(final String taskName,
 			StepExecutionListener stepExecutionListener) {
-		Step step = this.steps.get(taskName)
+		return this.steps.get(taskName)
 				.tasklet(new Tasklet() {
 					@Override
 					public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -203,11 +176,10 @@ public class ComposedRunnerVisitorConfiguration {
 				.transactionAttribute(getTransactionAttribute())
 				.listener(stepExecutionListener)
 				.build();
-		return step;
 	}
 
 	private Step createTaskletStep(final String taskName) {
-		Step step = this.steps.get(taskName)
+		return this.steps.get(taskName)
 				.tasklet(new Tasklet() {
 					@Override
 					public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -216,7 +188,6 @@ public class ComposedRunnerVisitorConfiguration {
 				})
 				.transactionAttribute(getTransactionAttribute())
 				.build();
-		return step;
 	}
 	/**
 	 * Using the default transaction attribute for the job will cause the

@@ -24,9 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.core.dsl.FlowNode;
 import org.springframework.cloud.dataflow.core.dsl.LabelledTaskNode;
@@ -34,6 +37,7 @@ import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskParser;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
+import org.springframework.cloud.task.repository.TaskNameResolver;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
@@ -43,7 +47,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class ComposedRunnerJobBuilder {
+public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 
 	private static final String WILD_CARD = "*";
 
@@ -53,41 +57,70 @@ public class ComposedRunnerJobBuilder {
 	@Autowired
 	private TaskExecutor taskExecutor;
 
+	@Autowired
+	private JobBuilderFactory jobBuilderFactory;
+
+	@Autowired
+	private TaskNameResolver taskNameResolver;
+
 	private FlowBuilder<Flow> flowBuilder;
 
 	private Map<String, Integer> taskBeanSuffixes = new HashMap<>();
 
-	private Deque visitorDeque = new LinkedList();
+	private Deque<Flow> jobDeque = new LinkedList<>();
 
-	private Deque<Flow> jobDeque = new LinkedList();
+	private Deque<LabelledTaskNode> visitorDeque;
 
-	public ComposedRunnerJobBuilder(ComposedRunnerVisitor composedRunnerVisitor) {
-		Assert.notNull(composedRunnerVisitor, "composedRunnerVisitor must not be null");
+	private String dsl;
+
+	public ComposedRunnerJobFactory(String dsl) {
+		Assert.notNull(dsl, "The DSL must not be null");
+		this.dsl = dsl;
 		this.flowBuilder = new FlowBuilder<>(UUID.randomUUID().toString());
-		this.visitorDeque = composedRunnerVisitor.getFlowDeque();
 	}
 
-	/**
-	 * Create a FlowBuilder based on the deque provided by the
-	 * ComposedRunnerVisitor.
+	@Override
+	public Job getObject() throws Exception {
+		ComposedRunnerVisitor composedRunnerVisitor = new ComposedRunnerVisitor();
 
-	 * @return FlowBuilder that generates the composed task flow.
-	 */
-	public FlowBuilder<Flow> getFlowBuilder() {
-		return this.flowBuilder.start(createFlow());
+		TaskParser taskParser = new TaskParser("composed-task-runner",
+				this.dsl,false,true);
+		taskParser.parse().accept(composedRunnerVisitor);
+
+		this.visitorDeque = composedRunnerVisitor.getFlow();
+
+		return this.jobBuilderFactory
+				.get(this.taskNameResolver.getTaskName())
+				.start(this.flowBuilder
+						.start(createFlow())
+						.end())
+				.end()
+				.build();
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		return Job.class;
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return true;
 	}
 
 	private Flow createFlow() {
 		Deque<Flow> executionDeque = new LinkedList<>();
+
 		while (!this.visitorDeque.isEmpty()) {
+
 			if (this.visitorDeque.peek() instanceof TaskAppNode) {
 				TaskAppNode taskAppNode = (TaskAppNode) this.visitorDeque.pop();
+
 				if (taskAppNode.hasTransitions()) {
 					handleTransition(executionDeque, taskAppNode);
 				}
 				else {
-					executionDeque.push(
-							getTaskAppFlow(taskAppNode));
+					executionDeque.push(getTaskAppFlow(taskAppNode));
 				}
 			}
 			//When end marker of a split is found, process the split
@@ -99,20 +132,19 @@ public class ComposedRunnerJobBuilder {
 				handleFlow(executionDeque);
 			}
 		}
+
 		return this.jobDeque.pop();
 	}
 
 	private void handleFlow(Deque<Flow> executionDeque) {
-		boolean isFirst = true;
-		while (!executionDeque.isEmpty()) {
-			if (isFirst) {
-				this.flowBuilder.start(executionDeque.pop());
-				isFirst = false;
-			}
-			else {
-				this.flowBuilder.next(executionDeque.pop());
-			}
+		if(!executionDeque.isEmpty()) {
+			this.flowBuilder.start(executionDeque.pop());
 		}
+
+		while (!executionDeque.isEmpty()) {
+				this.flowBuilder.next(executionDeque.pop());
+		}
+
 		this.visitorDeque.pop();
 		this.jobDeque.push(this.flowBuilder.end());
 	}
@@ -121,6 +153,7 @@ public class ComposedRunnerJobBuilder {
 		FlowBuilder<Flow> taskAppFlowBuilder =
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
 		List<Flow> flows = new ArrayList<>();
+
 		//For each node in the split process it as a DSL flow.
 		for (LabelledTaskNode taskNode : splitNode.getSeries()) {
 			Deque<Flow> elementFlowDeque = processSplitFlow(taskNode);
@@ -132,11 +165,14 @@ public class ComposedRunnerJobBuilder {
 		Flow splitFlow = new FlowBuilder.SplitBuilder<>(
 				new FlowBuilder<Flow>("Split" + UUID.randomUUID().toString()),
 				taskExecutor)
-				.add(flows.toArray(new Flow[flows.size()])).build();
+				.add(flows.toArray(new Flow[flows.size()]))
+				.build();
+
 		//remove the nodes of the split since it has already been processed
 		while (!(this.visitorDeque.peek() instanceof SplitNode)) {
 			this.visitorDeque.pop();
 		}
+
 		// pop the SplitNode that marks the beginning of the split from the deque
 		this.visitorDeque.pop();
 		executionDeque.push(taskAppFlowBuilder.start(splitFlow).end());
@@ -152,12 +188,17 @@ public class ComposedRunnerJobBuilder {
 				false, true);
 		ComposedRunnerVisitor splitElementVisitor = new ComposedRunnerVisitor();
 		taskParser.parse().accept(splitElementVisitor);
-		Deque splitElementDeque = splitElementVisitor.getFlowDeque();
+
+		Deque splitElementDeque = splitElementVisitor.getFlow();
 		Deque<Flow> elementFlowDeque = new LinkedList<>();
 		Deque<Flow> resultFlowDeque = new LinkedList<>();
+
 		while (!splitElementDeque.isEmpty()) {
+
 			if (splitElementDeque.peek() instanceof TaskAppNode) {
+
 				TaskAppNode taskAppNode = (TaskAppNode) splitElementDeque.pop();
+
 				if (taskAppNode.hasTransitions()) {
 					handleTransition(elementFlowDeque, taskAppNode);
 				}
@@ -171,23 +212,24 @@ public class ComposedRunnerJobBuilder {
 				splitElementDeque.pop();
 			}
 		}
+
 		return resultFlowDeque;
 	}
 
 	private void handleFlowForSegment(Deque<Flow> executionDeque,
 			Deque<Flow> resultDeque) {
-		boolean isFirst = true;
 		FlowBuilder<Flow> localTaskAppFlowBuilder =
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
-		while (!executionDeque.isEmpty()) {
-			if (isFirst) {
-				localTaskAppFlowBuilder.start(executionDeque.pop());
-				isFirst = false;
-			}
-			else {
-				localTaskAppFlowBuilder.next(executionDeque.pop());
-			}
+
+		if(!executionDeque.isEmpty()) {
+			localTaskAppFlowBuilder.start(executionDeque.pop());
+
 		}
+
+		while (!executionDeque.isEmpty()) {
+			localTaskAppFlowBuilder.next(executionDeque.pop());
+		}
+
 		resultDeque.push(localTaskAppFlowBuilder.end());
 	}
 
@@ -197,17 +239,20 @@ public class ComposedRunnerJobBuilder {
 		Step currentStep = this.context.getBean(beanName, Step.class);
 		FlowBuilder<Flow> builder = new FlowBuilder<Flow>(beanName)
 				.from(currentStep);
+
 		boolean wildCardPresent = false;
+
 		for (TransitionNode transitionNode : taskAppNode.getTransitions()) {
 			String transitionBeanName = getBeanName(transitionNode);
-			if (transitionNode.getStatusToCheck().equals(WILD_CARD)) {
-				wildCardPresent = true;
-			}
+
+			wildCardPresent = transitionNode.getStatusToCheck().equals(WILD_CARD);
+
 			Step transitionStep = this.context.getBean(transitionBeanName,
 					Step.class);
 			builder.on(transitionNode.getStatusToCheck()).to(transitionStep)
 					.from(currentStep);
 		}
+
 		if (wildCardPresent && !executionDeque.isEmpty()) {
 			throw new IllegalStateException(
 					"Invalid flow following '*' specifier.");
@@ -222,6 +267,7 @@ public class ComposedRunnerJobBuilder {
 				builder.on(WILD_CARD).to(resultDeque.pop()).from(currentStep);
 			}
 		}
+
 		executionDeque.push(builder.end());
 	}
 
@@ -229,6 +275,7 @@ public class ComposedRunnerJobBuilder {
 		if (transition.getTargetLabel() != null) {
 			return transition.getTargetLabel();
 		}
+
 		return getBeanName(transition.getTargetApp());
 	}
 
@@ -237,30 +284,33 @@ public class ComposedRunnerJobBuilder {
 		if (taskApp.getLabel() != null) {
 			return taskApp.getLabel().stringValue();
 		}
+
 		String taskName = taskApp.getName();
+
 		if (taskName.contains("->")) {
 			taskName = taskName.substring(taskName.indexOf("->") + 2);
 		}
+
 		return getBeanName(taskName);
 	}
 
 	private String getBeanName(String taskName) {
-		Integer taskSuffix;
+		int taskSuffix = 0;
+
 		if (this.taskBeanSuffixes.containsKey(taskName)) {
 			taskSuffix = this.taskBeanSuffixes.get(taskName);
 		}
-		else {
-			taskSuffix = 0;
-		}
+
 		String result = String.format("%s_%s", taskName, taskSuffix++);
 		this.taskBeanSuffixes.put(taskName, taskSuffix);
+
 		return result;
 	}
 
 	private Flow getTaskAppFlow(TaskAppNode taskApp) {
 		String beanName = getBeanName(taskApp);
 		Step currentStep = this.context.getBean(beanName, Step.class);
+
 		return new FlowBuilder<Flow>(beanName).from(currentStep).end();
 	}
-
 }

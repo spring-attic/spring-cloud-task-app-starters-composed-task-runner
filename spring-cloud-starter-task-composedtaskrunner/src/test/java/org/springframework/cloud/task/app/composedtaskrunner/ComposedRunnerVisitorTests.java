@@ -19,6 +19,7 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.batch.core.JobExecution;
@@ -50,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 public class ComposedRunnerVisitorTests {
 
 	private static final String CLOSE_CONTEXT_ARG = "--spring.cloud.task.closecontext_enable=false";
+	private static final String TASK_NAME_ARG = "--spring.cloud.task.name=job";
 
 	private ConfigurableApplicationContext applicationContext;
 
@@ -83,14 +86,14 @@ public class ComposedRunnerVisitorTests {
 		setupContextForGraph("AAA && failedStep && BBB");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
 		assertEquals(2, stepExecutions.size());
-		StepExecution stepExecution = stepExecutions.iterator().next();
 		List<StepExecution> sortedStepExecution =
 				getSortedStepExecutions(stepExecutions);
 		assertEquals("AAA_0", sortedStepExecution.get(0).getStepName());
 		assertEquals("failedStep_0", sortedStepExecution.get(1).getStepName());
 	}
 
-//	@Test  Disabling till parser can support duplicate tasks
+	@Ignore("Disabling till parser can support duplicate tasks")
+	@Test
 	public void duplicateTaskTest() {
 		setupContextForGraph("AAA && AAA");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
@@ -324,14 +327,14 @@ public class ComposedRunnerVisitorTests {
 
 
 	private Set<String> getStepNames(Collection<StepExecution> stepExecutions) {
-		Set<String> result = new HashSet();
+		Set<String> result = new HashSet<>();
 		for(StepExecution stepExecution : stepExecutions) {
 			result.add(stepExecution.getStepName());
 		}
 		return result;
 	}
 	private void setupContextForGraph(String graph) {
-		String[] ARGS = new String[] {CLOSE_CONTEXT_ARG,"--graph=" + graph};
+		String[] ARGS = new String[] {CLOSE_CONTEXT_ARG, TASK_NAME_ARG, "--graph=" + graph};
 
 		this.applicationContext = SpringApplication.run(new Object[] {ComposedRunnerVisitorConfiguration.class,
 				PropertyPlaceholderAutoConfiguration.class,
@@ -353,7 +356,7 @@ public class ComposedRunnerVisitorTests {
 
 	private List<StepExecution> getSortedStepExecutions(Collection<StepExecution> stepExecutions) {
 		List<StepExecution> result = new ArrayList<>(stepExecutions);
-		result.sort(new Comparator<StepExecution>() {
+		Collections.sort(result, new Comparator<StepExecution>() {
 			@Override
 			public int compare(StepExecution stepExecution1, StepExecution stepExecution2) {
 				return  stepExecution1.getStartTime().compareTo(stepExecution2.getStartTime());

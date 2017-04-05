@@ -29,17 +29,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class ComposedTaskProperties {
 
+	public static final int MAX_WAIT_TIME_DEFAULT = 0;
+
+	public static final int INTERVAL_TIME_BETWEEN_CHECKS_DEFAULT = 10000;
+
+	public static final int SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT = 1;
+
+	public static final int SPLIT_THREAD_KEEP_ALIVE_SECONDS_DEFAULT = 60;
+
+	public static final int SPLIT_THREAD_MAX_POOL_SIZE_DEFAULT = Integer.MAX_VALUE;
+
+	public static final int SPLIT_THREAD_QUEUE_CAPACITY_DEFAULT = Integer.MAX_VALUE;
+
 	/**
 	 * The maximum amount of time in millis that a individual step can run before
 	 * the execution of the Composed task is failed.
 	 */
-	private int maxWaitTime = 0;
+	private int maxWaitTime = MAX_WAIT_TIME_DEFAULT;
 
 	/**
 	 * The amount of time in millis that the ComposedTaskRunner
 	 * will wait between checks of the database to see if a task has completed.
 	 */
-	private int intervalTimeBetweenChecks = 10000;
+	private int intervalTimeBetweenChecks = INTERVAL_TIME_BETWEEN_CHECKS_DEFAULT;
 
 	/**
 	 * The URI for the dataflow server that will receive task launch requests.
@@ -72,25 +84,25 @@ public class ComposedTaskProperties {
 	 * Split's core pool size.
 	 * Default is 1;
 	 */
-	private int splitThreadCorePoolSize = 1;
+	private int splitThreadCorePoolSize = SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT;
 
 	/**
 	 * Split's thread keep alive seconds.
 	 * Default is 60.
 	 */
-	private int splitThreadKeepAliveSeconds = 60;
+	private int splitThreadKeepAliveSeconds = SPLIT_THREAD_KEEP_ALIVE_SECONDS_DEFAULT;
 
 	/**
 	 * Split's maximum pool size.
 	 * Default is {@code Integer.MAX_VALUE}.
 	 */
-	private int splitThreadMaxPoolSize = Integer.MAX_VALUE;
+	private int splitThreadMaxPoolSize = SPLIT_THREAD_MAX_POOL_SIZE_DEFAULT;
 
 	/**
 	 * Capacity for Split's  BlockingQueue.
 	 * Default is {@code Integer.MAX_VALUE}.
 	 */
-	private int splitThreadQueueCapacity = Integer.MAX_VALUE;
+	private int splitThreadQueueCapacity = SPLIT_THREAD_QUEUE_CAPACITY_DEFAULT;
 
 	/**
 	 * Whether to wait for scheduled tasks to complete on shutdown, not

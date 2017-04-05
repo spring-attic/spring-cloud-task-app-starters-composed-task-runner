@@ -31,7 +31,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.cloud.task.app.composedtaskrunner.support.TimeoutException;
+import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecutionTimeoutException;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.util.Assert;
@@ -61,8 +61,7 @@ public class TaskLauncherTasklet implements Tasklet {
 
 	public TaskLauncherTasklet(
 			TaskOperations taskOperations, TaskExplorer taskExplorer,
-			ComposedTaskProperties composedTaskProperties, String taskName,
-			Map<String, String> properties, List<String> arguments) {
+			ComposedTaskProperties composedTaskProperties, String taskName) {
 		Assert.hasText(taskName, "taskName must not be empty nor null.");
 		Assert.notNull(taskOperations, "taskOperations must not be null.");
 		Assert.notNull(taskExplorer, "taskExplorer must not be null.");
@@ -70,21 +69,27 @@ public class TaskLauncherTasklet implements Tasklet {
 				"composedTaskProperties must not be null");
 
 		this.taskName = taskName;
-		if (properties == null) {
-			this.properties = new HashMap<>();
-		}
-		else {
-			this.properties = properties;
-		}
-		if (arguments == null) {
-			this.arguments = new ArrayList<>();
-		}
-		else {
-			this.arguments = arguments;
-		}
 		this.taskOperations = taskOperations;
 		this.taskExplorer = taskExplorer;
 		this.composedTaskProperties = composedTaskProperties;
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		if(properties != null) {
+			this.properties = properties;
+		}
+		else {
+			this.properties = new HashMap<>(0);
+		}
+	}
+
+	public void setArguments(List<String> arguments) {
+		if(arguments != null) {
+			this.arguments = arguments;
+		}
+		else {
+			this.arguments = new ArrayList<>(0);
+		}
 	}
 
 	/**
@@ -111,12 +116,11 @@ public class TaskLauncherTasklet implements Tasklet {
 		long executionId = this.taskOperations.launch(tmpTaskName,
 				this.properties, args);
 
-		stepExecutionContext
-					.put("task-execution-id", executionId);
+		stepExecutionContext.put("task-execution-id", executionId);
 		stepExecutionContext.put("task-arguments", args);
 
 		if(!waitForTaskToComplete(executionId)) {
-			throw new TimeoutException(String.format(
+			throw new TaskExecutionTimeoutException(String.format(
 					"Timeout occurred while processing task with Execution Id %s",
 					executionId));
 		}
@@ -141,13 +145,14 @@ public class TaskLauncherTasklet implements Tasklet {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
+
 			TaskExecution taskExecution =
 					this.taskExplorer.getTaskExecution(taskExecutionId);
 			if(taskExecution != null && taskExecution.getEndTime() != null) {
 				isComplete = true;
 				isSuccessful = true;
 			}
-			long t = System.currentTimeMillis();
+
 			if(this.composedTaskProperties.getMaxWaitTime() > 0 &&
 					System.currentTimeMillis() > timeout) {
 				isComplete = true;

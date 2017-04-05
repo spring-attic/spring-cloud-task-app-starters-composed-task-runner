@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -35,13 +33,13 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.cloud.task.app.composedtaskrunner.support.TimeoutException;
+import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecutionTimeoutException;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.cloud.task.repository.TaskRepository;
@@ -107,8 +105,9 @@ public class TaskLauncherTaskletTests {
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTasklet() throws Exception{
+		getCompleteTaskExecution();
 		TaskLauncherTasklet taskLauncherTasklet =
-				getTaskExecutionTasklet(getCompleteTaskExecution());
+				getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		mockReturnValForTaskExecution(1L);
 		taskLauncherTasklet.execute(null, chunkContext);
@@ -118,12 +117,14 @@ public class TaskLauncherTaskletTests {
 
 		mockReturnValForTaskExecution(2L);
 		chunkContext = chunkContext();
-		taskLauncherTasklet = getTaskExecutionTasklet(getCompleteTaskExecution());
+		getCompleteTaskExecution();
+		taskLauncherTasklet = getTaskExecutionTasklet();
 		taskLauncherTasklet.execute(null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
 	}
+
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTaskletTimeout() throws Exception {
@@ -132,11 +133,10 @@ public class TaskLauncherTaskletTests {
 		this.composedTaskProperties.setMaxWaitTime(1000);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
-		long taskExecutionId = 0l;
 		try {
-		taskLauncherTasklet.execute(null, chunkContext);
+			taskLauncherTasklet.execute(null, chunkContext);
 		}
-		catch (TimeoutException te) {
+		catch (TaskExecutionTimeoutException te) {
 			isException = true;
 			assertThat(te.getMessage(),is(equalTo("Timeout occurred while " +
 					"processing task with Execution Id 1")));
@@ -195,14 +195,9 @@ public class TaskLauncherTaskletTests {
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
-		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
-		return getTaskExecutionTasklet(taskExecution);
-	}
-
-	private TaskLauncherTasklet getTaskExecutionTasklet(TaskExecution taskExecution) {
 		return new TaskLauncherTasklet(this.taskOperations,
 				this.taskExplorer, this.composedTaskProperties,
-				TASK_NAME, new HashMap<String,String>(), new ArrayList<String>());
+				TASK_NAME);
 	}
 
 	private ChunkContext chunkContext ()
@@ -213,8 +208,7 @@ public class TaskLauncherTaskletTests {
 		JobExecution jobExecution = new JobExecution(JOB_EXECUTION_ID);
 		StepExecution stepExecution = new StepExecution(STEP_NAME, jobExecution);
 		StepContext stepContext = new StepContext(stepExecution);
-		ChunkContext chunkContext = new ChunkContext(stepContext);
-		return chunkContext;
+		return new ChunkContext(stepContext);
 	}
 
 	private void mockReturnValForTaskExecution(long executionId) {

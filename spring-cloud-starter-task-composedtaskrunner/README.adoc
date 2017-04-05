@@ -34,11 +34,11 @@ org.springframework.cloud.task.app.composedtaskrunner.support.TimeoutException
 will be thrown.  Once task launched by the step completes,
 the ComposedTaskRunner will set the `ExitStatus` of that step based on the following rules:
 
-* If the TaskExecution has an ExitMessage that will be used as the `ExitStatus`
-* If no ExitMessage is present and the ExitCode is set to 0 then the `ExitStatus`
-for the step will be COMPLETED.
-* If no ExitMessage is present and the ExitCode is set to 1 then the `ExitStatus`
-for the step will be FAILED.
+* If the `TaskExecution` has an `ExitMessage` that will be used as the `ExitStatus`
+* If no `ExitMessage` is present and the `ExitCode` is set to 0 then the `ExitStatus`
+for the step will be `COMPLETED`.
+* If no `ExitMessage` is present and the `ExitCode` is set to 1 then the `ExitStatus`
+for the step will be `FAILED`.
 
 If the state of any step in the graph is set to  FAILED and is not handled by
 the DSL the Directed Graph execution will terminate.

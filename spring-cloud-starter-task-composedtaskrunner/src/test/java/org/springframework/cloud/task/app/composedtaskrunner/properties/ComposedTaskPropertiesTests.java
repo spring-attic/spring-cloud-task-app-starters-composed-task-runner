@@ -51,10 +51,10 @@ public class ComposedTaskPropertiesTests {
 	@Test
 	public void testThreadDefaults() {
 		ComposedTaskProperties properties = new ComposedTaskProperties();
-		assertEquals(1, properties.getSplitThreadCorePoolSize());
-		assertEquals(60, properties.getSplitThreadKeepAliveSeconds());
-		assertEquals(Integer.MAX_VALUE, properties.getSplitThreadMaxPoolSize());
-		assertEquals(Integer.MAX_VALUE, properties.getSplitThreadQueueCapacity());
+		assertEquals(ComposedTaskProperties.SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT, properties.getSplitThreadCorePoolSize());
+		assertEquals(ComposedTaskProperties.SPLIT_THREAD_KEEP_ALIVE_SECONDS_DEFAULT, properties.getSplitThreadKeepAliveSeconds());
+		assertEquals(ComposedTaskProperties.SPLIT_THREAD_MAX_POOL_SIZE_DEFAULT, properties.getSplitThreadMaxPoolSize());
+		assertEquals(ComposedTaskProperties.SPLIT_THREAD_QUEUE_CAPACITY_DEFAULT, properties.getSplitThreadQueueCapacity());
 		assertFalse(properties.isSplitThreadAllowCoreThreadTimeout());
 		assertFalse(properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
 	}

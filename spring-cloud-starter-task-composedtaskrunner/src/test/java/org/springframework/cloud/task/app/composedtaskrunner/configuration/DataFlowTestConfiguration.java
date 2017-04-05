@@ -16,16 +16,12 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
-import org.springframework.cloud.dataflow.rest.resource.TaskDefinitionResource;
-import org.springframework.cloud.dataflow.rest.resource.TaskExecutionResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.hateoas.PagedResources;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Glenn Renfro
@@ -36,57 +32,7 @@ public class DataFlowTestConfiguration {
 
 	@Bean
 	public TaskOperations taskOperations() {
-		return new TestTaskOperations();
+		return mock(TaskOperations.class);
 	}
 
-	public static class TestTaskOperations implements TaskOperations {
-
-		private boolean isLaunched;
-
-		@Override
-		public PagedResources<TaskDefinitionResource> list() {
-			return null;
-		}
-
-		@Override
-		public TaskDefinitionResource create(String name, String definition) {
-			return null;
-		}
-
-		@Override
-		public long launch(String name, Map<String, String> properties, List<String> arguments) {
-			this.isLaunched = true;
-			return 1;
-		}
-
-		@Override
-		public void destroy(String name) {
-
-		}
-
-		@Override
-		public PagedResources<TaskExecutionResource> executionList() {
-			return null;
-		}
-
-		@Override
-		public PagedResources<TaskExecutionResource> executionListByTaskName(String taskName) {
-			return null;
-		}
-
-		@Override
-		public TaskExecutionResource taskExecutionStatus(long id) {
-			return null;
-		}
-
-		@Override
-		public void cleanup(long l) {
-
-		}
-
-		public boolean isLaunched() {
-			return this.isLaunched;
-		}
-
-	}
 }

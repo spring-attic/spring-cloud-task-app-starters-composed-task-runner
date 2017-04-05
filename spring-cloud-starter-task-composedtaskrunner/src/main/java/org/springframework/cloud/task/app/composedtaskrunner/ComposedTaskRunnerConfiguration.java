@@ -50,21 +50,7 @@ import org.springframework.util.StringUtils;
 public class ComposedTaskRunnerConfiguration {
 
 	@Autowired
-	private JobBuilderFactory jobs;
-
-	@Autowired
 	private ComposedTaskProperties properties;
-
-	@Autowired
-	private ApplicationContext context;
-
-	@Autowired
-	private DataSource dataSource;
-
-	@Bean
-	public TaskConfigurer taskConfigurer() {
-		return new DefaultTaskConfigurer(this.dataSource);
-	}
 
 	@Bean
 	public StepExecutionListener composedTaskStepExecutionListener(
@@ -72,26 +58,10 @@ public class ComposedTaskRunnerConfiguration {
 		return new ComposedTaskStepExecutionListener(taskConfigurer.getTaskExplorer());
 	}
 
-
 	@Bean
-	public ComposedRunnerJobBuilder composedRunnerJobBuilder(
-			ComposedRunnerVisitor composedRunnerVisitor) {
-		TaskParser taskParser = new TaskParser("composed-task-runner",
-				this.properties.getGraph(),false,true);
-		taskParser.parse().accept(composedRunnerVisitor);
-		return new ComposedRunnerJobBuilder(composedRunnerVisitor);
-	}
+	public ComposedRunnerJobFactory composedTaskJob() {
 
-	@Bean
-	public Job getComposedTaskJob(ComposedRunnerJobBuilder composedRunnerJobBuilder) {
-
-		return this.jobs.get(getTaskName()).start(composedRunnerJobBuilder.getFlowBuilder().end()).end().build();
-	}
-
-	@Bean
-	public ComposedRunnerVisitor composedRunnerVisitor() {
-		ComposedRunnerVisitor composedRunnerVisitor = new ComposedRunnerVisitor();
-		return composedRunnerVisitor;
+		return new ComposedRunnerJobFactory(this.properties.getGraph());
 	}
 
 	@Bean
@@ -106,16 +76,5 @@ public class ComposedTaskRunnerConfiguration {
 		taskExecutor.setWaitForTasksToCompleteOnShutdown(
 				properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
 		return taskExecutor;
-	}
-
-	private String getTaskName() {
-		String configuredName = this.context.getEnvironment().
-				getProperty("spring.cloud.task.name");
-		if (StringUtils.hasText(configuredName)) {
-			return configuredName;
-		}
-		else {
-			return this.context.getId();
-		}
 	}
 }

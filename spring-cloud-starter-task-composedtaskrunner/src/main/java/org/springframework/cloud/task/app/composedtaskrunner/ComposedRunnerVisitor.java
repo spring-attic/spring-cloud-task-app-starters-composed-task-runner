@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.dataflow.core.dsl.FlowNode;
+import org.springframework.cloud.dataflow.core.dsl.LabelledTaskNode;
 import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskVisitor;
@@ -34,7 +35,7 @@ import org.springframework.cloud.dataflow.core.dsl.TaskVisitor;
  */
 public class ComposedRunnerVisitor extends TaskVisitor {
 
-	private Deque flowDeque = new LinkedList();
+	private Deque<LabelledTaskNode> flowDeque = new LinkedList<>();
 
 	private static final Log logger = LogFactory.getLog(ComposedRunnerVisitor.class);
 
@@ -83,7 +84,7 @@ public class ComposedRunnerVisitor extends TaskVisitor {
 		this.flowDeque.push(taskApp);
 	}
 
-	public Deque getFlowDeque() {
+	public Deque<LabelledTaskNode> getFlow() {
 		return this.flowDeque;
 	}
 

@@ -66,13 +66,15 @@ public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupp
 				"return a task-execution-id.  Check to see if task " +
 				"exists.");
 
-		TaskExecution resultExecution = this.taskExplorer.getTaskExecution(Long.valueOf(executionId));
+		TaskExecution resultExecution = this.taskExplorer.getTaskExecution(executionId);
+
 		if (!StringUtils.isEmpty(resultExecution.getExitMessage())) {
 			result = new ExitStatus(resultExecution.getExitMessage());
 		}
 		else if (resultExecution.getExitCode() != 0) {
 			result = ExitStatus.FAILED;
 		}
+
 		logger.info(String.format("AfterStep processing complete for " +
 						"stepExecution %s with taskExecution %s",
 				stepExecution.getStepName(), executionId));

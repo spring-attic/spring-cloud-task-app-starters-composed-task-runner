@@ -27,8 +27,8 @@ import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskParser;
 import org.springframework.cloud.dataflow.core.dsl.TaskVisitor;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
+import org.springframework.cloud.dataflow.rest.util.DeploymentPropertiesUtils;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.cloud.task.app.composedtaskrunner.properties.PropertyUtility;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
@@ -62,15 +62,29 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 				builder.addConstructorArgValue(properties);
 				builder.addConstructorArgValue(String.format("%s_%s",
 						taskName, taskSuffix));
-				builder.addConstructorArgValue(
-						PropertyUtility.getPropertiesForTask(taskName,
-								properties));
-				builder.addConstructorArgValue(null);
+				builder.addPropertyValue("taskSpecificProps",
+						getPropertiesForTask(taskName, properties));
 
 				registry.registerBeanDefinition(String.format("%s_%s",
 						taskName, taskSuffix), builder.getBeanDefinition());
 			}
 		}
+	}
+
+	private Map<String, String> getPropertiesForTask(String taskName, ComposedTaskProperties properties) {
+		Map<String, String> definitionProperties =
+				DeploymentPropertiesUtils.parse(properties.getComposedTaskProperties());
+
+		String appPrefix = String.format("app.%s.", taskName);
+		Map<String, String> deploymentProperties = new HashMap<>();
+		for (Map.Entry<String, String> entry : definitionProperties.entrySet()) {
+			if (entry.getKey().startsWith(appPrefix)) {
+				deploymentProperties.put(entry.getKey()
+						.substring(appPrefix.length()), entry.getValue());
+			}
+		}
+
+		return deploymentProperties;
 	}
 
 	@Override
@@ -98,26 +112,24 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 					intervalTimeBetweenChecks));
 		}
 		if (dataFlowUriString != null) {
-			URI dataFlowUri = null;
 			try {
-				dataFlowUri = new URI(dataFlowUriString);
+				properties.setDataFlowUri(new URI(dataFlowUriString));
 			}
 			catch (URISyntaxException e) {
 				throw new IllegalArgumentException("Invalid Data Flow URI");
 			}
-			properties.setDataFlowUri(dataFlowUri);
 		}
 		return properties;
 	}
 
 	/**
-	 * @return all the apps referenced in the composed task.
+	 * @return a {@link Map} of task app name as the key and the number of times it occurs
+	 * as the value.
 	 */
 	private Map<String, Integer> getTaskApps(TaskParser taskParser) {
 		TaskAppsMapCollector collector = new TaskAppsMapCollector();
 		taskParser.parse().accept(collector);
-		Map<String, Integer> taskApps = collector.getTaskApps();
-		return taskApps;
+		return collector.getTaskApps();
 	}
 
 	/**

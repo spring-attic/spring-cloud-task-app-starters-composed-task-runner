@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,15 +27,16 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Glenn Renfro
@@ -54,7 +58,7 @@ public class ComposedTaskRunnerConfigurationTests {
 	private Job job;
 
 	@Autowired
-	private DataFlowTestConfiguration.TestTaskOperations taskOperations;
+	private TaskOperations taskOperations;
 
 	@Test
 	@DirtiesContext
@@ -62,7 +66,8 @@ public class ComposedTaskRunnerConfigurationTests {
 		JobExecution jobExecution = this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
 		job.execute(jobExecution);
-		assertTrue(this.taskOperations.isLaunched());
+
+		verify(this.taskOperations).launch("AAA", new HashMap<String, String>(0), new ArrayList<String>(0));
 	}
 
 }

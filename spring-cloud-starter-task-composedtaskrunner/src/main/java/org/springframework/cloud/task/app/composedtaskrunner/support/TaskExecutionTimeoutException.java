@@ -23,9 +23,13 @@ import org.springframework.cloud.task.app.composedtaskrunner.properties.Composed
  *
  * @author Glenn Renfro
  */
-public class TimeoutException extends RuntimeException{
+public class TaskExecutionTimeoutException extends RuntimeException {
 
-	public TimeoutException(String message) {
+	public TaskExecutionTimeoutException(String message) {
 		super(message);
+	}
+
+	public TaskExecutionTimeoutException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }
