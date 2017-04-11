@@ -36,9 +36,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.cloud.dataflow.core.dsl.TaskValidationException;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.ComposedRunnerVisitorConfiguration;
 import org.springframework.cloud.task.batch.configuration.TaskBatchAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -301,17 +302,20 @@ public class ComposedRunnerVisitorTests {
 
 
 	@Test
-	public void failedStepTransitionWithDuplicateTaskNameTest() {//should fail because bbb should fire then stop.
-		setupContextForGraph("failedStep 'FAILED' -> BBB  && CCC && BBB && EEE");
-		Collection<StepExecution> stepExecutions = getStepExecutions();
-		Set<String> stepNames= getStepNames(stepExecutions);
-		assertEquals(2, stepExecutions.size());
-		assertTrue(stepNames.contains("failedStep_0"));
-		assertTrue(stepNames.contains("BBB_1"));
-		List<StepExecution> sortedStepExecution =
-				getSortedStepExecutions(stepExecutions);
-		assertEquals("failedStep_0", sortedStepExecution.get(0).getStepName());
-		assertEquals("BBB_1", sortedStepExecution.get(1).getStepName());
+	public void failedStepTransitionWithDuplicateTaskNameTest() {
+		try {
+			setupContextForGraph("failedStep 'FAILED' -> BBB  && CCC && BBB && EEE");
+		}
+		catch (BeanCreationException bce) {
+			assertEquals(TaskValidationException.class,
+					bce.getRootCause().getClass());
+			assertEquals("Problems found when validating 'failedStep " +
+							"'FAILED' -> BBB  && CCC && BBB && EEE': " +
+							"[166E:(pos 38): duplicate app name. Use a " +
+							"label to ensure uniqueness]",
+					bce.getRootCause().getMessage());
+		}
+
 	}
 
 	@Test
@@ -320,7 +324,13 @@ public class ComposedRunnerVisitorTests {
 			setupContextForGraph("AAA 'FAILED' -> BBB  * -> CCC && BBB && EEE");
 		}
 		catch (BeanCreationException bce) {
-			validateInvalidFlowWildCard(bce);
+			assertEquals(TaskValidationException.class,
+					bce.getRootCause().getClass());
+			assertEquals("Problems found when validating 'AAA 'FAILED' -> " +
+							"BBB  * -> CCC && BBB && EEE': [166E:(pos 33): " +
+							"duplicate app name. Use a label to ensure " +
+							"uniqueness]",
+					bce.getRootCause().getMessage());
 		}
 
 	}
