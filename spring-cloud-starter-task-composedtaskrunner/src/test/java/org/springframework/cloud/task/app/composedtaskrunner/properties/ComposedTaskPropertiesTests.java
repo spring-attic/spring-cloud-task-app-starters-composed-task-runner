@@ -37,13 +37,13 @@ public class ComposedTaskPropertiesTests {
 		properties.setComposedTaskArguments("bbb");
 		properties.setIntervalTimeBetweenChecks(12345);
 		properties.setMaxWaitTime(6789);
-		properties.setDataFlowUri(new URI("http://test"));
+		properties.setDataflowServerUri(new URI("http://test"));
 		properties.setGraph("ddd");
 		assertEquals("aaa", properties.getComposedTaskProperties());
 		assertEquals("bbb", properties.getComposedTaskArguments());
 		assertEquals(12345, properties.getIntervalTimeBetweenChecks());
 		assertEquals(6789, properties.getMaxWaitTime());
-		assertEquals("http://test", properties.getDataFlowUri().toString());
+		assertEquals("http://test", properties.getDataflowServerUri().toString());
 		assertEquals("ddd", properties.getGraph());
 
 	}
