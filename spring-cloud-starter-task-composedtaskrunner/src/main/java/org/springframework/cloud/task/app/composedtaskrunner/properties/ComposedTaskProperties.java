@@ -57,7 +57,7 @@ public class ComposedTaskProperties {
 	 * The URI for the dataflow server that will receive task launch requests.
 	 * Default is http://localhost:9393;
 	 */
-	private URI dataFlowUri;
+	private URI dataflowServerUri;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -113,10 +113,10 @@ public class ComposedTaskProperties {
 
 	public ComposedTaskProperties() {
 		try {
-			this.dataFlowUri = new URI("http://localhost:9393");
+			this.dataflowServerUri = new URI("http://localhost:9393");
 		}
 		catch (URISyntaxException e) {
-			throw new IllegalStateException("Invalid Spring Cloud Data Flow URI");
+			throw new IllegalStateException("Invalid Spring Cloud Data Flow Server URI", e);
 		}
 	}
 
@@ -136,12 +136,12 @@ public class ComposedTaskProperties {
 		this.intervalTimeBetweenChecks = intervalTimeBetweenChecks;
 	}
 
-	public URI getDataFlowUri() {
-		return this.dataFlowUri;
+	public URI getDataflowServerUri() {
+		return dataflowServerUri;
 	}
 
-	public void setDataFlowUri(URI dataFlowUri) {
-		this.dataFlowUri = dataFlowUri;
+	public void setDataflowServerUri(URI dataflowServerUri) {
+		this.dataflowServerUri = dataflowServerUri;
 	}
 
 	public String getGraph() {

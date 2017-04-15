@@ -113,7 +113,7 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 		}
 		if (dataFlowUriString != null) {
 			try {
-				properties.setDataFlowUri(new URI(dataFlowUriString));
+				properties.setDataflowServerUri(new URI(dataFlowUriString));
 			}
 			catch (URISyntaxException e) {
 				throw new IllegalArgumentException("Invalid Data Flow URI");

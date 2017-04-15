@@ -39,7 +39,7 @@ public class DataFlowConfiguration {
 	@Bean
 	public TaskOperations taskOperations() {
 		DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(
-				this.properties.getDataFlowUri());
+				this.properties.getDataflowServerUri());
 
 		return dataFlowTemplate.taskOperations();
 	}
