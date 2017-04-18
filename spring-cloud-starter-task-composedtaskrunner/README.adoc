@@ -52,13 +52,13 @@ will look  like this:
 ```
 AAA && BBB && CCC
 ```
-image::basicsequence.png[basic sequence]
+image::images/basicsequence.png[basic sequence]
 
 You can execute the same task multiple times in a sequence.  For example:
 ```
 AAA && AAA && AAA
 ```
-image::samejobsequence.png[basic sequence with repeated job definition]
+image::images/samejobsequence.png[basic sequence with repeated job definition]
 
 If an `ExitStatus` 'FAILED' is returned in a sequence the Composed Task
 Runner will terminate.  For example if `AAA && BBB && CCC` composed task is
@@ -73,7 +73,7 @@ the result.  For example:
 ```
 AAA 'FAILED' -> BBB 'COMPLETED' -> CCC
 ```
-image::basictransition.png[basic transition]
+image::images/basictransition.png[basic transition]
 
 Will launch AAA and if AAA fails then BBB will be launched.  Else if AAA
 completes successfully then CCC will launch.
@@ -82,7 +82,7 @@ You can also have a sequence that follows a transition.  For example:
 ```
 AAA 'FAILED' -> BBB && CCC && DDD
 ```
-image::basictransitionwithsequence.png[basic transition with sequence]
+image::images/basictransitionwithsequence.png[basic transition with sequence]
 
 Will launch AAA and for any `ExitStatus` that is returned other than 'FAILED' then
 CCC && DDD  will be launched.  However if AAA returns 'FAILED' then BBB will
@@ -94,7 +94,7 @@ For example:
 ```
 AAA 'FAILED' -> BBB '*'->CCC
 ```
-image::basictransitionwithwildcard.png[basic transition with wildcard]
+image::images/basictransitionwithwildcard.png[basic transition with wildcard]
 
 In the case above AAA will launch and any `ExitStatus` other than FAILED will
 launch CCC.
@@ -105,7 +105,7 @@ For example:
 ```
 <AAA || BBB || CCC>
 ```
-image::basicsplit.png[basic split]
+image::images/basicsplit.png[basic split]
 
 Will launch AAA, BBB and CCC in parallel.   When launching splits as a part of a
 composed task all elements of the split must finish successfully before the
@@ -113,7 +113,7 @@ next task definition can be launched for example:
 ```
 <AAA || BBB || CCC> && DDD && EEE
 ```
-image::basicsplitwithsequence.png[basic split with sequence]
+image::images/basicsplitwithsequence.png[basic split with sequence]
 
 In the case above once AAA, BBB and CCC complete sucessfully then DDD and EEE
 will be launched in the sequence enumerated above.  However if one of the task
