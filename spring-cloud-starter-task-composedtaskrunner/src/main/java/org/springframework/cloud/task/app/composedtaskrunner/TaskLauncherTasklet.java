@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
@@ -119,25 +120,20 @@ public class TaskLauncherTasklet implements Tasklet {
 		stepExecutionContext.put("task-execution-id", executionId);
 		stepExecutionContext.put("task-arguments", args);
 
-		if(!waitForTaskToComplete(executionId)) {
-			throw new TaskExecutionTimeoutException(String.format(
-					"Timeout occurred while processing task with Execution Id %s",
-					executionId));
-		}
+		waitForTaskToComplete(executionId);
+
 		return RepeatStatus.FINISHED;
 	}
 
-	private boolean waitForTaskToComplete(long taskExecutionId) {
+	private void waitForTaskToComplete(long taskExecutionId) {
 		long timeout = System.currentTimeMillis() +
 				this.composedTaskProperties.getMaxWaitTime();
-		boolean isComplete = false;
-		boolean isSuccessful = false;
 		logger.debug("Wait time for this task to complete is " +
 				this.composedTaskProperties.getMaxWaitTime());
 		logger.debug("Interval check time for this task to complete is " +
 				this.composedTaskProperties.getIntervalTimeBetweenChecks());
 
-		while (!isComplete) {
+		while (true) {
 			try {
 				Thread.sleep(this.composedTaskProperties.getIntervalTimeBetweenChecks());
 			}
@@ -149,16 +145,19 @@ public class TaskLauncherTasklet implements Tasklet {
 			TaskExecution taskExecution =
 					this.taskExplorer.getTaskExecution(taskExecutionId);
 			if(taskExecution != null && taskExecution.getEndTime() != null) {
-				isComplete = true;
-				isSuccessful = true;
+				if(taskExecution.getExitCode() != 0 ) {
+					throw new UnexpectedJobExecutionException("Task returned a non zero exit code.");
+				}
+				break;
 			}
 
 			if(this.composedTaskProperties.getMaxWaitTime() > 0 &&
 					System.currentTimeMillis() > timeout) {
-				isComplete = true;
+				throw new TaskExecutionTimeoutException(String.format(
+						"Timeout occurred while processing task with Execution Id %s",
+						taskExecutionId));
 			}
 		}
-		return isSuccessful;
 	}
 
 }

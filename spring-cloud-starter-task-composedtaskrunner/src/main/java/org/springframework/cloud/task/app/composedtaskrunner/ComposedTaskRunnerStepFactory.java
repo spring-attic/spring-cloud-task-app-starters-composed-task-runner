@@ -95,8 +95,7 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 		taskLauncherTasklet.setArguments(this.arguments);
 		taskLauncherTasklet.setProperties(this.taskSpecificProps);
 
-		String stepName = String.format("%s_%s",this.taskName,
-				UUID.randomUUID().toString());
+		String stepName = this.taskName;
 
 		return this.steps.get(stepName)
 				.tasklet(taskLauncherTasklet)
