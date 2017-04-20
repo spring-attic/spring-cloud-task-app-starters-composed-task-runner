@@ -9,8 +9,8 @@
 	<description>Dependencies for Spring Cloud Task Composed Task Runner App Starter</description>
 
 	<properties>
-		<spring-cloud-task.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-task.version>
-		<spring-cloud-dataflow.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-dataflow.version>
+		<spring-cloud-task.version>1.2.0.RC1</spring-cloud-task.version>
+		<spring-cloud-dataflow.version>1.2.0.RC1</spring-cloud-dataflow.version>
 	</properties>
 	<parent>
 		<groupId>org.springframework.cloud.task.app</groupId>
