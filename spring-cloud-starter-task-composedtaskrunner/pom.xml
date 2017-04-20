@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.springframework.cloud.task.app</groupId>
         <artifactId>composedtaskrunner-task-app-starters-build</artifactId>
-        <version>1.0.0.BUILD-SNAPSHOT</version>
+        <version>1.0.0.RC1</version>
     </parent>
 
     <dependencies>
@@ -89,14 +89,6 @@
                         <artifactId>composedtaskrunner-task-app-dependencies</artifactId>
                         <version>${project.version}</version>
                     </bom>
-                    <additionalBoms>
-                        <bom>
-                            <name>task-app-starters-core-dependencies</name>
-                            <groupId>org.springframework.cloud.task.app</groupId>
-                            <artifactId>task-app-starters-core-dependencies</artifactId>
-                            <version>1.2.0.BUILD-SNAPSHOT</version>
-                        </bom>
-                    </additionalBoms>
                     <generatedApps>
                         <composedtaskrunner-task>
                             <autoConfigClass>org.springframework.cloud.task.app.composedtaskrunner.ComposedTaskRunnerConfiguration.class</autoConfigClass>
