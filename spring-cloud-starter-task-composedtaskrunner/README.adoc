@@ -1,4 +1,6 @@
 //tag::ref-doc[]
+:image-root: https://raw.githubusercontent.com/spring-cloud-task-app-starters/composed-task-runner/master/spring-cloud-starter-task-composedtaskrunner/images
+
 = Composed Task Runner
 
 A task that executes a tasks in a directed graph as specified by a DSL that is
@@ -52,7 +54,7 @@ will look  like this:
 ```
 AAA && BBB && CCC
 ```
-image::images/basicsequence.png[basic sequence]
+image::{image-root}/basicsequence.png[basic sequence]
 
 You can execute the same task multiple times in a sequence.  For example:
 ```
