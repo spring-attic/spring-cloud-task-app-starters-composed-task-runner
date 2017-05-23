@@ -16,24 +16,32 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
+import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Glenn Renfro
@@ -45,26 +53,40 @@ import org.springframework.util.Assert;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1000", "increment-instance-enabled=true"})
-public class ComposedTaskRunnerConfigurationJobIncrementerTests {
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1010",
+		"composed-task-properties=app.AAA.format=yyyy, app.BBB.format=mm",
+		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo",
+		"dataflow-server-uri=http://bar"})
+public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired
 	private JobRepository jobRepository;
 
 	@Autowired
-	private JobExplorer jobExplorer;
-
-	@Autowired
-	protected Job job;
+	private Job job;
 
 	@Autowired
 	private TaskOperations taskOperations;
 
+	@Autowired
+	ComposedTaskProperties composedTaskProperties;
+
 	@Test
 	@DirtiesContext
-	public void testComposedConfigurationWithJobIncrementer() throws Exception {
+	public void testComposedConfiguration() throws Exception {
 		JobExecution jobExecution = this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
-		Assert.notNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must not be null.");
+		job.execute(jobExecution);
+
+		Map<String, String> props = new HashMap<>(1);
+		props.put("format", "yyyy");
+		assertEquals(1010, composedTaskProperties.getMaxWaitTime());
+		assertEquals(1100, composedTaskProperties.getIntervalTimeBetweenChecks());
+		assertEquals("http://bar", composedTaskProperties.getDataflowServerUri().toASCIIString());
+
+		List<String> args = new ArrayList<>(1);
+		args.add("--baz=boo");
+		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
+		verify(this.taskOperations).launch("AAA", props, args);
 	}
 }
