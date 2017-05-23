@@ -64,6 +64,7 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 						taskName, taskSuffix));
 				builder.addPropertyValue("taskSpecificProps",
 						getPropertiesForTask(taskName, properties));
+				builder.addPropertyValue("arguments", properties.getComposedTaskArguments());
 
 				registry.registerBeanDefinition(String.format("%s_%s",
 						taskName, taskSuffix), builder.getBeanDefinition());
@@ -101,8 +102,8 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 				this.env.getProperty("intervalTimeBetweenChecks");
 		properties.setGraph(this.env.getProperty("graph"));
 		properties.setComposedTaskArguments(
-				this.env.getProperty("composedTaskArguments"));
-		properties.setComposedTaskProperties("composedTaskProperties");
+				this.env.getProperty("composed-task-arguments"));
+		properties.setComposedTaskProperties(this.env.getProperty("composed-task-properties"));
 
 		if (maxWaitTime != null) {
 			properties.setMaxWaitTime(Integer.valueOf(maxWaitTime));
