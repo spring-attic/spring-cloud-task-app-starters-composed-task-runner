@@ -123,15 +123,13 @@ definitions fails in the split then DDD and EEE will not fire.  For example if
 BBB fails then AAA and CCC will be marked successful and BBB will be marked a
 failure and DDD and EEE will not be launched.
 
-== Usage
-`java -jar composedtaskrunner-task-1.0.0.BUILD-SNAPSHOT.jar --graph=<your graph syntax>`
-
 == Options
 
 // see syntax (soon to be automatically generated) in spring-cloud-stream starters
 The **$$ComposedTaskRunner$$** $$task$$ has the following options:
 
 //tag::configuration-properties[]
+
 $$composed-task-arguments$$:: $$The arguments to be used for each of the tasks.$$ *($$String$$, default: `$$<none>$$`)*
 $$composed-task-properties$$:: $$The properties to be used for each of the tasks as well as their deployments.$$ *($$String$$, default: `$$<none>$$`)*
 $$dataflow-server-uri$$:: $$The URI for the dataflow server that will receive task launch requests.
@@ -154,6 +152,18 @@ $$split-thread-queue-capacity$$:: $$Capacity for Split's  BlockingQueue.
 $$split-thread-wait-for-tasks-to-complete-on-shutdown$$:: $$Whether to wait for scheduled tasks to complete on shutdown, not
  interrupting running tasks and executing all tasks in the queue.
  Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
+
 //end::configuration-properties[]
+
+== Building with Maven
+
+```
+$ ./mvnw clean install -PgenerateApps
+$ cd apps/composedtaskrunner-task
+$ ./mvnw clean package
+```
+
+== Example
+`java -jar composedtaskrunner-task-{version}.jar --graph=<your graph syntax>`
 
 //end::ref-doc[]
