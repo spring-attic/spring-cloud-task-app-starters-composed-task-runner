@@ -129,7 +129,6 @@ failure and DDD and EEE will not be launched.
 The **$$ComposedTaskRunner$$** $$task$$ has the following options:
 
 //tag::configuration-properties[]
-
 $$composed-task-arguments$$:: $$The arguments to be used for each of the tasks.$$ *($$String$$, default: `$$<none>$$`)*
 $$composed-task-properties$$:: $$The properties to be used for each of the tasks as well as their deployments.$$ *($$String$$, default: `$$<none>$$`)*
 $$dataflow-server-uri$$:: $$The URI for the dataflow server that will receive task launch requests.
@@ -152,7 +151,9 @@ $$split-thread-queue-capacity$$:: $$Capacity for Split's  BlockingQueue.
 $$split-thread-wait-for-tasks-to-complete-on-shutdown$$:: $$Whether to wait for scheduled tasks to complete on shutdown, not
  interrupting running tasks and executing all tasks in the queue.
  Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
-
+$$unique-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed. Default
+ is false which means a ComposedTaskRunner instance can only be executed once, if
+ true it can be re-executed.$$ *($$Boolean$$, default: `$$false$$`)*
 //end::configuration-properties[]
 
 == Building with Maven

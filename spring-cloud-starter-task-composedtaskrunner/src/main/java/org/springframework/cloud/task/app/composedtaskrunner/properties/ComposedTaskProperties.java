@@ -111,6 +111,13 @@ public class ComposedTaskProperties {
 	 */
 	private boolean splitThreadWaitForTasksToCompleteOnShutdown;
 
+	/**
+	 * Allows a single ComposedTaskRunner instance to be re-executed. Default
+	 * is false which means a ComposedTaskRunner instance can only be executed once, if
+	 * true it can be re-executed.
+	 */
+	private boolean uniqueInstanceEnabled = false;
+
 	public ComposedTaskProperties() {
 		try {
 			this.dataflowServerUri = new URI("http://localhost:9393");
@@ -214,5 +221,13 @@ public class ComposedTaskProperties {
 
 	public void setSplitThreadWaitForTasksToCompleteOnShutdown(boolean splitThreadWaitForTasksToCompleteOnShutdown) {
 		this.splitThreadWaitForTasksToCompleteOnShutdown = splitThreadWaitForTasksToCompleteOnShutdown;
+	}
+
+	public boolean isUniqueInstanceEnabled() {
+		return uniqueInstanceEnabled;
+	}
+
+	public void setUniqueInstanceEnabled(boolean uniqueInstanceEnabled) {
+		this.uniqueInstanceEnabled = uniqueInstanceEnabled;
 	}
 }

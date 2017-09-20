@@ -28,6 +28,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.job.builder.FlowBuilder;
+import org.springframework.batch.core.job.builder.FlowJobBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import org.springframework.cloud.dataflow.core.dsl.SplitNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskAppNode;
 import org.springframework.cloud.dataflow.core.dsl.TaskParser;
 import org.springframework.cloud.dataflow.core.dsl.TransitionNode;
+import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.repository.TaskNameResolver;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
@@ -73,9 +75,12 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 
 	private String dsl;
 
-	public ComposedRunnerJobFactory(String dsl) {
-		Assert.notNull(dsl, "The DSL must not be null");
-		this.dsl = dsl;
+	private boolean uniqueInstanceEnabled;
+
+	public ComposedRunnerJobFactory(ComposedTaskProperties properties) {
+		Assert.notNull(properties.getGraph(), "The DSL must not be null");
+		this.dsl = properties.getGraph();
+		this.uniqueInstanceEnabled = properties.isUniqueInstanceEnabled();
 		this.flowBuilder = new FlowBuilder<>(UUID.randomUUID().toString());
 	}
 
@@ -89,13 +94,16 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 
 		this.visitorDeque = composedRunnerVisitor.getFlow();
 
-		return this.jobBuilderFactory
+		FlowJobBuilder builder = this.jobBuilderFactory
 				.get(this.taskNameResolver.getTaskName())
 				.start(this.flowBuilder
 						.start(createFlow())
 						.end())
-				.end()
-				.build();
+				.end();
+		if(uniqueInstanceEnabled) {
+			builder.incrementer(new ComposedTaskJobIncrementer());
+		}
+		return builder.build();
 	}
 
 	@Override

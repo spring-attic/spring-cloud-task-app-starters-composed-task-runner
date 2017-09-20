@@ -57,7 +57,7 @@ public class ComposedRunnerVisitorConfiguration {
 
 	@Bean
 	public ComposedRunnerJobFactory job() {
-		return new ComposedRunnerJobFactory(this.composedTaskProperties.getGraph());
+		return new ComposedRunnerJobFactory(this.composedTaskProperties);
 	}
 
 	@Bean
