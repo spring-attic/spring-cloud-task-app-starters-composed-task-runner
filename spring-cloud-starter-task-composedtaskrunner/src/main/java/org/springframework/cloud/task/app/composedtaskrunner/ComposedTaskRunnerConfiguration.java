@@ -61,7 +61,7 @@ public class ComposedTaskRunnerConfiguration {
 	@Bean
 	public ComposedRunnerJobFactory composedTaskJob() {
 
-		return new ComposedRunnerJobFactory(this.properties.getGraph());
+		return new ComposedRunnerJobFactory(this.properties);
 	}
 
 	@Bean

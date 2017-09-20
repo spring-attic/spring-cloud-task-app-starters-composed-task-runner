@@ -111,6 +111,14 @@ public class ComposedTaskProperties {
 	 */
 	private boolean splitThreadWaitForTasksToCompleteOnShutdown;
 
+	/**
+	 * Allows a single ComposedTaskRunner instance to be re-executed without
+	 * changing the parameters. Default is false which means a
+	 * ComposedTaskRunner instance can only be executed once with a given set
+	 * of parameters, if true it can be re-executed.
+	 */
+	private boolean incrementInstanceEnabled = false;
+
 	public ComposedTaskProperties() {
 		try {
 			this.dataflowServerUri = new URI("http://localhost:9393");
@@ -214,5 +222,13 @@ public class ComposedTaskProperties {
 
 	public void setSplitThreadWaitForTasksToCompleteOnShutdown(boolean splitThreadWaitForTasksToCompleteOnShutdown) {
 		this.splitThreadWaitForTasksToCompleteOnShutdown = splitThreadWaitForTasksToCompleteOnShutdown;
+	}
+
+	public boolean isIncrementInstanceEnabled() {
+		return incrementInstanceEnabled;
+	}
+
+	public void setIncrementInstanceEnabled(boolean incrementInstanceEnabled) {
+		this.incrementInstanceEnabled = incrementInstanceEnabled;
 	}
 }

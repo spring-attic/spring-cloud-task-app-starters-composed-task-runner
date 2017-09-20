@@ -16,15 +16,13 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -37,8 +35,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
-import static org.mockito.Mockito.verify;
-
 /**
  * @author Glenn Renfro
  */
@@ -49,26 +45,26 @@ import static org.mockito.Mockito.verify;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000"})
-public class ComposedTaskRunnerConfigurationTests {
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000", "incrementInstanceEnabled=true"})
+public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 
 	@Autowired
 	private JobRepository jobRepository;
 
 	@Autowired
-	private Job job;
+	private JobExplorer jobExplorer;
+
+	@Autowired
+	protected Job job;
 
 	@Autowired
 	private TaskOperations taskOperations;
 
 	@Test
 	@DirtiesContext
-	public void testComposedConfiguration() throws Exception {
+	public void testComposedConfigurationWithJobIncrementer() throws Exception {
 		JobExecution jobExecution = this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
-		job.execute(jobExecution);
-
-		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
-		verify(this.taskOperations).launch("AAA", new HashMap<String, String>(0), new ArrayList<String>(0));
+		Assert.notNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must not be null.");
 	}
 }
