@@ -30,6 +30,7 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.FlowJobBuilder;
 import org.springframework.batch.core.job.flow.Flow;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.core.dsl.FlowNode;
@@ -75,12 +76,12 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 
 	private String dsl;
 
-	private boolean uniqueInstanceEnabled;
+	private boolean incrementInstanceEnabled;
 
 	public ComposedRunnerJobFactory(ComposedTaskProperties properties) {
 		Assert.notNull(properties.getGraph(), "The DSL must not be null");
 		this.dsl = properties.getGraph();
-		this.uniqueInstanceEnabled = properties.isUniqueInstanceEnabled();
+		this.incrementInstanceEnabled = properties.isIncrementInstanceEnabled();
 		this.flowBuilder = new FlowBuilder<>(UUID.randomUUID().toString());
 	}
 
@@ -100,8 +101,8 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 						.start(createFlow())
 						.end())
 				.end();
-		if(uniqueInstanceEnabled) {
-			builder.incrementer(new ComposedTaskJobIncrementer());
+		if(this.incrementInstanceEnabled) {
+			builder.incrementer(new RunIdIncrementer());
 		}
 		return builder.build();
 	}

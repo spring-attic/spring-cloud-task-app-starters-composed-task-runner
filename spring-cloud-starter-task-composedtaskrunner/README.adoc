@@ -134,6 +134,10 @@ $$composed-task-properties$$:: $$The properties to be used for each of the tasks
 $$dataflow-server-uri$$:: $$The URI for the dataflow server that will receive task launch requests.
  Default is http://localhost:9393;$$ *($$URI$$, default: `$$<none>$$`)*
 $$graph$$:: $$The DSL for the composed task directed graph.$$ *($$String$$, default: `$$<none>$$`)*
+$$increment-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed without
+ changing the parameters. Default is false which means a
+ ComposedTaskRunner instance can only be executed once with a given set
+ of parameters, if true it can be re-executed.$$ *($$Boolean$$, default: `$$false$$`)*
 $$interval-time-between-checks$$:: $$The amount of time in millis that the ComposedTaskRunner
  will wait between checks of the database to see if a task has completed.$$ *($$Integer$$, default: `$$10000$$`)*
 $$max-wait-time$$:: $$The maximum amount of time in millis that a individual step can run before
@@ -151,9 +155,6 @@ $$split-thread-queue-capacity$$:: $$Capacity for Split's  BlockingQueue.
 $$split-thread-wait-for-tasks-to-complete-on-shutdown$$:: $$Whether to wait for scheduled tasks to complete on shutdown, not
  interrupting running tasks and executing all tasks in the queue.
  Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
-$$unique-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed. Default
- is false which means a ComposedTaskRunner instance can only be executed once, if
- true it can be re-executed.$$ *($$Boolean$$, default: `$$false$$`)*
 //end::configuration-properties[]
 
 == Building with Maven

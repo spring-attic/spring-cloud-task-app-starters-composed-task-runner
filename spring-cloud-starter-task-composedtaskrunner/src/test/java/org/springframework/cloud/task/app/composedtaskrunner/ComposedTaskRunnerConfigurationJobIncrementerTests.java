@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000", "uniqueInstanceEnabled=true"})
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000", "incrementInstanceEnabled=true"})
 public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 
 	@Autowired
@@ -65,7 +65,6 @@ public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 	public void testComposedConfigurationWithJobIncrementer() throws Exception {
 		JobExecution jobExecution = this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
-		job.execute(jobExecution);
 		Assert.notNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must not be null.");
 	}
 }

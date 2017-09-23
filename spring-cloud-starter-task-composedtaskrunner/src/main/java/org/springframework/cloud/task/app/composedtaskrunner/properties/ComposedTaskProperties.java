@@ -112,11 +112,12 @@ public class ComposedTaskProperties {
 	private boolean splitThreadWaitForTasksToCompleteOnShutdown;
 
 	/**
-	 * Allows a single ComposedTaskRunner instance to be re-executed. Default
-	 * is false which means a ComposedTaskRunner instance can only be executed once, if
-	 * true it can be re-executed.
+	 * Allows a single ComposedTaskRunner instance to be re-executed without
+	 * changing the parameters. Default is false which means a
+	 * ComposedTaskRunner instance can only be executed once with a given set
+	 * of parameters, if true it can be re-executed.
 	 */
-	private boolean uniqueInstanceEnabled = false;
+	private boolean incrementInstanceEnabled = false;
 
 	public ComposedTaskProperties() {
 		try {
@@ -223,11 +224,11 @@ public class ComposedTaskProperties {
 		this.splitThreadWaitForTasksToCompleteOnShutdown = splitThreadWaitForTasksToCompleteOnShutdown;
 	}
 
-	public boolean isUniqueInstanceEnabled() {
-		return uniqueInstanceEnabled;
+	public boolean isIncrementInstanceEnabled() {
+		return incrementInstanceEnabled;
 	}
 
-	public void setUniqueInstanceEnabled(boolean uniqueInstanceEnabled) {
-		this.uniqueInstanceEnabled = uniqueInstanceEnabled;
+	public void setIncrementInstanceEnabled(boolean incrementInstanceEnabled) {
+		this.incrementInstanceEnabled = incrementInstanceEnabled;
 	}
 }
