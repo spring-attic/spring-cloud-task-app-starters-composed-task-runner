@@ -18,6 +18,8 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,8 +51,10 @@ import static org.mockito.Mockito.verify;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000"})
-public class ComposedTaskRunnerConfigurationTests {
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000",
+		"composed-task-properties=app.AAA.format=yyyy, app.BBB.format=mm",
+		"composed-task-arguments=--baz=boo"})
+public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired
 	private JobRepository jobRepository;
@@ -68,7 +72,12 @@ public class ComposedTaskRunnerConfigurationTests {
 				"ComposedTest", new JobParameters());
 		job.execute(jobExecution);
 
+		Map<String, String> props = new HashMap<>(1);
+		props.put("format", "yyyy");
+
+		List<String> args = new ArrayList<>(1);
+		args.add("--baz=boo");
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
-		verify(this.taskOperations).launch("AAA", new HashMap<String, String>(0), new ArrayList<String>(0));
+		verify(this.taskOperations).launch("AAA", props, args);
 	}
 }
