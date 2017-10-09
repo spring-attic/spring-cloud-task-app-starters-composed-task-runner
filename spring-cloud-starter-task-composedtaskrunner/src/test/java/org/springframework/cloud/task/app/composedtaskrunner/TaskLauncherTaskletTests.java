@@ -19,6 +19,7 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.mockito.Mockito;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
@@ -105,7 +107,7 @@ public class TaskLauncherTaskletTests {
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTasklet() throws Exception{
-		getCompleteTaskExecution();
+		getCompleteTaskExecution(0);
 		TaskLauncherTasklet taskLauncherTasklet =
 				getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
@@ -117,7 +119,7 @@ public class TaskLauncherTaskletTests {
 
 		mockReturnValForTaskExecution(2L);
 		chunkContext = chunkContext();
-		getCompleteTaskExecution();
+		getCompleteTaskExecution(0);
 		taskLauncherTasklet = getTaskExecutionTasklet();
 		taskLauncherTasklet.execute(null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
@@ -187,10 +189,28 @@ public class TaskLauncherTaskletTests {
 		assertEquals(ERROR_MESSAGE, exceptionMessage);
 	}
 
-	private TaskExecution getCompleteTaskExecution() {
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletFailure() throws Exception {
+		boolean isException = false;
+		mockReturnValForTaskExecution(1L);
+		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
+		ChunkContext chunkContext = chunkContext();
+		getCompleteTaskExecution(1);
+		try {
+			taskLauncherTasklet.execute(null, chunkContext);
+		}
+		catch (UnexpectedJobExecutionException jobExecutionException) {
+			isException = true;
+			assertThat(jobExecutionException.getMessage(),is(equalTo("Task returned a non zero exit code.")));
+		}
+		assertThat(isException,is(true));
+	}
+
+	private TaskExecution getCompleteTaskExecution(int exitCode) {
 		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
 		this.taskRepository.completeTaskExecution(taskExecution.getExecutionId(),
-				0, new Date(), "");
+				exitCode, new Date(), "");
 		return taskExecution;
 	}
 
