@@ -33,12 +33,14 @@ import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoCon
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
+import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -51,9 +53,10 @@ import static org.mockito.Mockito.verify;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000",
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1010",
 		"composed-task-properties=app.AAA.format=yyyy, app.BBB.format=mm",
-		"composed-task-arguments=--baz=boo"})
+		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo",
+		"dataflow-server-uri=http://bar"})
 public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired
@@ -65,6 +68,9 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 	@Autowired
 	private TaskOperations taskOperations;
 
+	@Autowired
+	ComposedTaskProperties composedTaskProperties;
+
 	@Test
 	@DirtiesContext
 	public void testComposedConfiguration() throws Exception {
@@ -74,6 +80,9 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 		Map<String, String> props = new HashMap<>(1);
 		props.put("format", "yyyy");
+		assertEquals(1010, composedTaskProperties.getMaxWaitTime());
+		assertEquals(1100, composedTaskProperties.getIntervalTimeBetweenChecks());
+		assertEquals("http://bar", composedTaskProperties.getDataflowServerUri().toASCIIString());
 
 		List<String> args = new ArrayList<>(1);
 		args.add("--baz=boo");

@@ -96,10 +96,10 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 
 	private ComposedTaskProperties composedTaskProperties() {
 		ComposedTaskProperties properties = new ComposedTaskProperties();
-		String dataFlowUriString = this.env.getProperty("dataFlowUri");
-		String maxWaitTime = this.env.getProperty("maxWaitTime");
+		String dataFlowUriString = this.env.getProperty("dataflow-server-uri");
+		String maxWaitTime = this.env.getProperty("max-wait-time");
 		String intervalTimeBetweenChecks =
-				this.env.getProperty("intervalTimeBetweenChecks");
+				this.env.getProperty("interval-time-between-checks");
 		properties.setGraph(this.env.getProperty("graph"));
 		properties.setComposedTaskArguments(
 				this.env.getProperty("composed-task-arguments"));

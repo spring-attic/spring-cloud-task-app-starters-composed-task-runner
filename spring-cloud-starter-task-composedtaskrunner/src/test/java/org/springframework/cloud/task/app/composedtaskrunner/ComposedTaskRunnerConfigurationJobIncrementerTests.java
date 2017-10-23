@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000", "incrementInstanceEnabled=true"})
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1000", "increment-instance-enabled=true"})
 public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 
 	@Autowired

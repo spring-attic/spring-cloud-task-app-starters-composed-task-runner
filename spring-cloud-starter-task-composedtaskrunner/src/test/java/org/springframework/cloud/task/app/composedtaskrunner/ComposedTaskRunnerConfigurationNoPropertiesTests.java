@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verify;
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
-@TestPropertySource(properties = {"graph=AAA && BBB && CCC","maxWaitTime=1000"})
+@TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1000"})
 public class ComposedTaskRunnerConfigurationNoPropertiesTests {
 
 	@Autowired
