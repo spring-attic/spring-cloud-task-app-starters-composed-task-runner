@@ -157,6 +157,9 @@ $$split-thread-wait-for-tasks-to-complete-on-shutdown$$:: $$Whether to wait for 
  Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
 //end::configuration-properties[]
 
+NOTE: when using the options above as environment variables, remove the `-` 's and capitalize the next character.
+For example: `increment-instance-enabled` would be `incrementInstanceEnabled`.
+
 == Building with Maven
 
 ```
