@@ -346,7 +346,7 @@ public class ComposedRunnerVisitorTests {
 	private void setupContextForGraph(String graph) {
 		String[] ARGS = new String[] {CLOSE_CONTEXT_ARG, TASK_NAME_ARG, "--graph=" + graph};
 
-		this.applicationContext = SpringApplication.run(new Object[] {ComposedRunnerVisitorConfiguration.class,
+		this.applicationContext = SpringApplication.run(new Class[] {ComposedRunnerVisitorConfiguration.class,
 				PropertyPlaceholderAutoConfiguration.class,
 				EmbeddedDataSourceConfiguration.class,
 				BatchAutoConfiguration.class,
