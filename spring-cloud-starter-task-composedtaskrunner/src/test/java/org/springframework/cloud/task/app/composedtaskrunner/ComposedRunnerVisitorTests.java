@@ -18,6 +18,7 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -132,6 +133,18 @@ public class ComposedRunnerVisitorTests {
 	}
 
 	@Test
+	public void nestedSplit() {
+		setupContextForGraph("<<AAA || BBB > && CCC || DDD>", "--splitThreadCorePoolSize=5");
+		Collection<StepExecution> stepExecutions = getStepExecutions();
+		Set<String> stepNames= getStepNames(stepExecutions);
+		assertEquals(4, stepExecutions.size());
+		assertTrue(stepNames.contains("AAA_0"));
+		assertTrue(stepNames.contains("BBB_0"));
+		assertTrue(stepNames.contains("CCC_0"));
+		assertTrue(stepNames.contains("DDD_0"));
+	}
+
+	@Test
 	public void twoSplitTest() {
 		setupContextForGraph("<AAA||BBB||CCC> && <DDD||EEE>");
 		Collection<StepExecution> stepExecutions = getStepExecutions();
@@ -142,7 +155,6 @@ public class ComposedRunnerVisitorTests {
 		assertTrue(stepNames.contains("CCC_0"));
 		assertTrue(stepNames.contains("DDD_0"));
 		assertTrue(stepNames.contains("EEE_0"));
-
 	}
 
 	@Test
@@ -343,14 +355,22 @@ public class ComposedRunnerVisitorTests {
 		}
 		return result;
 	}
-	private void setupContextForGraph(String graph) {
-		String[] ARGS = new String[] {CLOSE_CONTEXT_ARG, TASK_NAME_ARG, "--graph=" + graph};
 
+	private void setupContextForGraph(String graph, String... args) {
+		List<String> argsForCtx = new ArrayList<>();
+		argsForCtx.addAll(Arrays.asList(args));
+		argsForCtx.add("--graph=" + graph);
+		argsForCtx.add(CLOSE_CONTEXT_ARG);
+		argsForCtx.add(TASK_NAME_ARG);
+		setupContextForGraph(argsForCtx.toArray(new String[0]));
+	}
+
+	private void setupContextForGraph(String[] args) {
 		this.applicationContext = SpringApplication.run(new Object[] {ComposedRunnerVisitorConfiguration.class,
 				PropertyPlaceholderAutoConfiguration.class,
 				EmbeddedDataSourceConfiguration.class,
 				BatchAutoConfiguration.class,
-				TaskBatchAutoConfiguration.class}, ARGS);
+				TaskBatchAutoConfiguration.class}, args);
 	}
 
 	private Collection<StepExecution> getStepExecutions() {
