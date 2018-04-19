@@ -44,9 +44,12 @@ import org.springframework.cloud.dataflow.core.dsl.TaskValidationException;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.ComposedRunnerVisitorConfiguration;
 import org.springframework.cloud.task.batch.configuration.TaskBatchAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.Assert;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Glenn Renfro
@@ -142,6 +145,18 @@ public class ComposedRunnerVisitorTests {
 		assertTrue(stepNames.contains("BBB_0"));
 		assertTrue(stepNames.contains("CCC_0"));
 		assertTrue(stepNames.contains("DDD_0"));
+	}
+
+	@Test
+	public void nestedSplitThreadPoolSize() {
+		try {
+			setupContextForGraph("<<AAA || BBB > && CCC || <DDD || EEE> && FFF>", "--splitThreadCorePoolSize=1");
+			fail("Expected exception on split thread pool size");
+		}
+		catch (Exception e) {
+			assertTrue(e.getMessage().contains("Split thread core pool size 1 should be equal or greater than the "
+					+ "number of split flows 2. Try setting the composed task property `splitThreadCorePoolSize`"));
+		}
 	}
 
 	@Test
@@ -366,7 +381,7 @@ public class ComposedRunnerVisitorTests {
 	}
 
 	private void setupContextForGraph(String[] args) {
-		this.applicationContext = SpringApplication.run(new Object[] {ComposedRunnerVisitorConfiguration.class,
+		this.applicationContext = SpringApplication.run(new Class[] {ComposedRunnerVisitorConfiguration.class,
 				PropertyPlaceholderAutoConfiguration.class,
 				EmbeddedDataSourceConfiguration.class,
 				BatchAutoConfiguration.class,

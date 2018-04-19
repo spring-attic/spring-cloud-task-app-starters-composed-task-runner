@@ -65,6 +65,8 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 	@Autowired
 	private TaskNameResolver taskNameResolver;
 
+	private final ComposedTaskProperties composedTaskProperties;
+
 	private FlowBuilder<Flow> flowBuilder;
 
 	private Map<String, Integer> taskBeanSuffixes = new HashMap<>();
@@ -79,7 +81,12 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 
 	private boolean incrementInstanceEnabled;
 
+	private int splitFlows = 1;
+
+	private boolean hasNestedSplit = false;
+
 	public ComposedRunnerJobFactory(ComposedTaskProperties properties) {
+		this.composedTaskProperties = properties;
 		Assert.notNull(properties.getGraph(), "The DSL must not be null");
 		this.dsl = properties.getGraph();
 		this.incrementInstanceEnabled = properties.isIncrementInstanceEnabled();
@@ -184,6 +191,14 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 				.build();
 		FlowBuilder<Flow> taskAppFlowBuilder =
 				new FlowBuilder<>("Flow" + UUID.randomUUID().toString());
+		if (this.hasNestedSplit) {
+			this.splitFlows = flows.size();
+			int threadCorePoolSize = this.composedTaskProperties.getSplitThreadCorePoolSize();
+			Assert.isTrue(threadCorePoolSize >= this.splitFlows,
+					"Split thread core pool size " + threadCorePoolSize + " should be equal or greater "
+							+ "than the number of split flows " + this.splitFlows + "."
+							+ " Try setting the composed task property `splitThreadCorePoolSize`");
+		}
 		return taskAppFlowBuilder.start(nestedSplitFlow).end();
 	}
 
@@ -231,6 +246,7 @@ public class ComposedRunnerJobFactory implements FactoryBean<Job> {
 				splitElementDeque.pop();
 			}
 			else if (splitElementDeque.peek() instanceof SplitNode) {
+				this.hasNestedSplit = true;
 				Deque splitNodeDeque = new LinkedList<>();
 				SplitNode splitNode = (SplitNode) splitElementDeque.pop();
 				splitNodeDeque.push(splitNode);
