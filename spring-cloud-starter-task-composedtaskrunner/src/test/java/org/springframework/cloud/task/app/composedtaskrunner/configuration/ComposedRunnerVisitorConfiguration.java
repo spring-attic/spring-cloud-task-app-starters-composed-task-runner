@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 
 /**
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @EnableBatchProcessing
@@ -63,6 +64,20 @@ public class ComposedRunnerVisitorConfiguration {
 	@Bean
 	public ComposedRunnerVisitor composedRunnerStack() {
 		return new ComposedRunnerVisitor();
+	}
+
+	@Bean
+	public TaskExecutor taskExecutor() {
+		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+		taskExecutor.setCorePoolSize(this.composedTaskProperties.getSplitThreadCorePoolSize());
+		taskExecutor.setMaxPoolSize(this.composedTaskProperties.getSplitThreadMaxPoolSize());
+		taskExecutor.setKeepAliveSeconds(this.composedTaskProperties.getSplitThreadKeepAliveSeconds());
+		taskExecutor.setAllowCoreThreadTimeOut(
+				this.composedTaskProperties.isSplitThreadAllowCoreThreadTimeout());
+		taskExecutor.setQueueCapacity(this.composedTaskProperties.getSplitThreadQueueCapacity());
+		taskExecutor.setWaitForTasksToCompleteOnShutdown(
+				this.composedTaskProperties.isSplitThreadWaitForTasksToCompleteOnShutdown());
+		return taskExecutor;
 	}
 
 	@Bean
@@ -156,12 +171,6 @@ public class ComposedRunnerVisitorConfiguration {
 				return ExitStatus.COMPLETED;
 			}
 		};
-	}
-
-
-	@Bean
-	public TaskExecutor taskExecutor() {
-		return new ThreadPoolTaskExecutor();
 	}
 
 	private Step createTaskletStepWithListener(final String taskName,

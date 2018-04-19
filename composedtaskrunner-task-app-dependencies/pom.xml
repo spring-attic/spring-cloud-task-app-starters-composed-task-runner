@@ -17,7 +17,7 @@
 
 	<properties>
 		<spring-cloud-task.version>1.2.2.RELEASE</spring-cloud-task.version>
-		<spring-cloud-dataflow.version>1.2.3.RELEASE</spring-cloud-dataflow.version>
+		<spring-cloud-dataflow.version>1.5.0.BUILD-SNAPSHOT</spring-cloud-dataflow.version>
 	</properties>
 
 	<dependencyManagement>
