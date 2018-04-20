@@ -18,6 +18,7 @@ package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
+import org.springframework.cloud.dataflow.rest.client.config.DataFlowClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.mock;
  * @author Glenn Renfro
  */
 @Configuration
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = DataFlowClientAutoConfiguration.class)
 public class DataFlowTestConfiguration {
 
 	@Bean
