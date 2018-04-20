@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.core.type.AnnotationMetadata;
  *
  * @author Michael Minella
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar,
 		EnvironmentAware {
@@ -73,19 +74,22 @@ public class StepBeanDefinitionRegistrar implements ImportBeanDefinitionRegistra
 	}
 
 	private Map<String, String> getPropertiesForTask(String taskName, ComposedTaskProperties properties) {
-		Map<String, String> definitionProperties =
+		Map<String, String> taskDeploymentProperties =
 				DeploymentPropertiesUtils.parse(properties.getComposedTaskProperties());
-
-		String appPrefix = String.format("app.%s.", taskName);
 		Map<String, String> deploymentProperties = new HashMap<>();
-		for (Map.Entry<String, String> entry : definitionProperties.entrySet()) {
-			if (entry.getKey().startsWith(appPrefix)) {
+		updateDeploymentProperties(String.format("app.%s.", taskName), taskDeploymentProperties, deploymentProperties);
+		updateDeploymentProperties(String.format("deployer.%s.", taskName), taskDeploymentProperties, deploymentProperties);
+		return deploymentProperties;
+	}
+
+	private void updateDeploymentProperties(String prefix, Map<String, String> taskDeploymentProperties,
+			Map<String, String> deploymentProperties) {
+		for (Map.Entry<String, String> entry : taskDeploymentProperties.entrySet()) {
+			if (entry.getKey().startsWith(prefix)) {
 				deploymentProperties.put(entry.getKey()
-						.substring(appPrefix.length()), entry.getValue());
+						.substring(prefix.length()), entry.getValue());
 			}
 		}
-
-		return deploymentProperties;
 	}
 
 	@Override
