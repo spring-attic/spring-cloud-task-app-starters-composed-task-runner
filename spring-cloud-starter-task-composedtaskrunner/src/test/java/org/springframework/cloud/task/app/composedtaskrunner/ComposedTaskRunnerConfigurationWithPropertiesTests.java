@@ -21,19 +21,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.concurrent.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.cache.support.NoOpCacheManager;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -41,7 +47,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.springframework.cloud.task.app.composedtaskrunner.ComposedTaskRunnerConfigurationWithPropertiesTests.COMPOSED_TASK_PROPS;
 
 /**
  * @author Glenn Renfro
@@ -54,7 +62,7 @@ import static org.mockito.Mockito.verify;
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
 @TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1010",
-		"composed-task-properties=app.AAA.format=yyyy, app.BBB.format=mm",
+		"composed-task-properties=" + COMPOSED_TASK_PROPS ,
 		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo",
 		"dataflow-server-uri=http://bar"})
 public class ComposedTaskRunnerConfigurationWithPropertiesTests {
@@ -71,6 +79,10 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 	@Autowired
 	ComposedTaskProperties composedTaskProperties;
 
+	public static final String COMPOSED_TASK_PROPS = "app.AAA.format=yyyy, "
+			+ "app.BBB.format=mm, "
+			+ "deployer.AAA.memory=2048m";
+
 	@Test
 	@DirtiesContext
 	public void testComposedConfiguration() throws Exception {
@@ -80,10 +92,11 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 		Map<String, String> props = new HashMap<>(1);
 		props.put("format", "yyyy");
+		props.put("memory", "2048m");
+		assertEquals(COMPOSED_TASK_PROPS, composedTaskProperties.getComposedTaskProperties());
 		assertEquals(1010, composedTaskProperties.getMaxWaitTime());
 		assertEquals(1100, composedTaskProperties.getIntervalTimeBetweenChecks());
 		assertEquals("http://bar", composedTaskProperties.getDataflowServerUri().toASCIIString());
-
 		List<String> args = new ArrayList<>(1);
 		args.add("--baz=boo");
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
