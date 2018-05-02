@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.cloud.task.app</groupId>
 		<artifactId>task-app-starters-build</artifactId>
-		<version>1.3.1.BUILD-SNAPSHOT</version>
+		<version>1.3.0.RELEASE</version>
 		<relativePath/>
 	</parent>
 
