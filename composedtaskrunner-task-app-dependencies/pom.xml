@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.cloud.task.app</groupId>
 	<artifactId>composedtaskrunner-task-app-dependencies</artifactId>
-	<version>1.1.1.BUILD-SNAPSHOT</version>
+	<version>1.1.1.RELEASE</version>
 	<packaging>pom</packaging>
 	<name>Composed Task Runner Task App Dependencies</name>
 	<description>Dependencies for Spring Cloud Task Composed Task Runner App Starter</description>
@@ -17,7 +17,7 @@
 
 	<properties>
 		<spring-cloud-task.version>1.2.2.RELEASE</spring-cloud-task.version>
-		<spring-cloud-dataflow.version>1.5.0.BUILD-SNAPSHOT</spring-cloud-dataflow.version>
+		<spring-cloud-dataflow.version>1.5.0.RELEASE</spring-cloud-dataflow.version>
 	</properties>
 
 	<dependencyManagement>
