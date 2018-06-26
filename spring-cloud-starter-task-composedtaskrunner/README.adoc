@@ -133,6 +133,10 @@ $$composed-task-arguments$$:: $$The arguments to be used for each of the tasks.$
 $$composed-task-properties$$:: $$The properties to be used for each of the tasks as well as their deployments.$$ *($$String$$, default: `$$<none>$$`)*
 $$dataflow-server-uri$$:: $$The URI for the dataflow server that will receive task launch requests.
  Default is http://localhost:9393;$$ *($$URI$$, default: `$$<none>$$`)*
+$$dataflow-server-username$$:: $$The optional username for the dataflow server that will receive task launch requests.
+ Used to access the the dataflow server using Basic Authentication.$$ *($$String$$, default: `$$<none>$$`)*
+$$dataflow-server-password$$:: $$The optional password for the dataflow server that will receive task launch requests.
+ Used to access the the dataflow server using Basic Authentication.$$ *($$String$$, default: `$$<none>$$`)*
 $$graph$$:: $$The DSL for the composed task directed graph.$$ *($$String$$, default: `$$<none>$$`)*
 $$increment-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed without
  changing the parameters. Default is false which means a
