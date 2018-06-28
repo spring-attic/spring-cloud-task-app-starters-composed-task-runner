@@ -20,6 +20,7 @@ package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
+
 import org.springframework.cloud.task.app.composedtaskrunner.DataFlowConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -38,9 +39,8 @@ public class DataFlowConfigurationTests {
 		composedTaskProperties.setDataflowServerUsername("foo");
 		final DataFlowConfiguration dataFlowConfiguration = new DataFlowConfiguration();
 		ReflectionTestUtils.setField(dataFlowConfiguration, "properties", composedTaskProperties);
-
 		try {
-			dataFlowConfiguration.taskOperations();
+			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations());
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("A username may be specified only together with a password", e.getMessage());
@@ -55,9 +55,8 @@ public class DataFlowConfigurationTests {
 		composedTaskProperties.setDataflowServerPassword("bar");
 		final DataFlowConfiguration dataFlowConfiguration = new DataFlowConfiguration();
 		ReflectionTestUtils.setField(dataFlowConfiguration, "properties", composedTaskProperties);
-
 		try {
-			dataFlowConfiguration.taskOperations();
+			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations());
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("A password may be specified only together with a username", e.getMessage());
