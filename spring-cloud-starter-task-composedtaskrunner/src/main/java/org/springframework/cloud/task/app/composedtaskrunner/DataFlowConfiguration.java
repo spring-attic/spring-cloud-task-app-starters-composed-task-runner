@@ -18,8 +18,10 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.dataflow.rest.util.HttpClientConfigurer;
@@ -34,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @EnableConfigurationProperties(ComposedTaskProperties.class)
@@ -44,14 +47,16 @@ public class DataFlowConfiguration {
 	private ComposedTaskProperties properties;
 
 	@Bean
-	public TaskOperations taskOperations() {
+	public TaskOperations taskOperations(DataFlowOperations dataFlowOperations) {
+		return dataFlowOperations.taskOperations();
+	}
 
+	@Bean
+	public DataFlowOperations dataFlowOperations() {
 		final RestTemplate restTemplate = DataFlowTemplate.getDefaultDataflowRestTemplate();
-
-		validateUsernamePassword(properties.getDataflowServerUsername(),
-				properties.getDataflowServerPassword());
-		if (StringUtils.hasText(properties.getDataflowServerUsername())
-				&& StringUtils.hasText(properties.getDataflowServerPassword())) {
+		validateUsernamePassword(this.properties.getDataflowServerUsername(), this.properties.getDataflowServerPassword());
+		if (StringUtils.hasText(this.properties.getDataflowServerUsername())
+				&& StringUtils.hasText(this.properties.getDataflowServerPassword())) {
 			restTemplate.setRequestFactory(HttpClientConfigurer.create(this.properties.getDataflowServerUri())
 					.basicAuthCredentials(properties.getDataflowServerUsername(), properties.getDataflowServerPassword())
 					.buildClientHttpRequestFactory());
@@ -60,11 +65,7 @@ public class DataFlowConfiguration {
 		else {
 			logger.debug("Not configuring basic security for accessing the Data Flow Server");
 		}
-
-		final DataFlowTemplate dataFlowTemplate = new DataFlowTemplate(
-				this.properties.getDataflowServerUri(), restTemplate);
-
-		return dataFlowTemplate.taskOperations();
+		return new DataFlowTemplate(this.properties.getDataflowServerUri(), restTemplate);
 	}
 
 	private void validateUsernamePassword(String userName, String password) {
