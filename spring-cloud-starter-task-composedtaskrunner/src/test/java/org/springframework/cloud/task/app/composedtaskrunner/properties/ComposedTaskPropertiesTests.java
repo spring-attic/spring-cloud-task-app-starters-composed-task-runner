@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  */
 public class ComposedTaskPropertiesTests {
 
@@ -39,13 +41,16 @@ public class ComposedTaskPropertiesTests {
 		properties.setMaxWaitTime(6789);
 		properties.setDataflowServerUri(new URI("http://test"));
 		properties.setGraph("ddd");
+		properties.setDataflowServerUsername("foo");
+		properties.setDataflowServerPassword("bar");
 		assertEquals("aaa", properties.getComposedTaskProperties());
 		assertEquals("bbb", properties.getComposedTaskArguments());
 		assertEquals(12345, properties.getIntervalTimeBetweenChecks());
 		assertEquals(6789, properties.getMaxWaitTime());
 		assertEquals("http://test", properties.getDataflowServerUri().toString());
 		assertEquals("ddd", properties.getGraph());
-
+		assertEquals("foo", properties.getDataflowServerUsername());
+		assertEquals("bar", properties.getDataflowServerPassword());
 	}
 
 	@Test
@@ -61,7 +66,10 @@ public class ComposedTaskPropertiesTests {
 		assertEquals(ComposedTaskProperties.SPLIT_THREAD_KEEP_ALIVE_SECONDS_DEFAULT, properties.getSplitThreadKeepAliveSeconds());
 		assertEquals(ComposedTaskProperties.SPLIT_THREAD_MAX_POOL_SIZE_DEFAULT, properties.getSplitThreadMaxPoolSize());
 		assertEquals(ComposedTaskProperties.SPLIT_THREAD_QUEUE_CAPACITY_DEFAULT, properties.getSplitThreadQueueCapacity());
+		assertEquals("http://localhost:9393", properties.getDataflowServerUri().toString());
 		assertFalse(properties.isSplitThreadAllowCoreThreadTimeout());
 		assertFalse(properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
+		assertNull(properties.getDataflowServerUsername());
+		assertNull(properties.getDataflowServerPassword());
 	}
 }

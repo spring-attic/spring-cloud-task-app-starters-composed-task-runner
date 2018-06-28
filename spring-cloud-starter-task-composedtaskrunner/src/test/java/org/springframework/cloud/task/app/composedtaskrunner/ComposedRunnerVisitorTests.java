@@ -44,11 +44,9 @@ import org.springframework.cloud.dataflow.core.dsl.TaskValidationException;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.ComposedRunnerVisitorConfiguration;
 import org.springframework.cloud.task.batch.configuration.TaskBatchAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.util.Assert;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**

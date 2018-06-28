@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Configuration properties used to setup the ComposedTaskRunner.
  *
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  */
 @ConfigurationProperties
 public class ComposedTaskProperties {
@@ -58,6 +59,18 @@ public class ComposedTaskProperties {
 	 * Default is http://localhost:9393;
 	 */
 	private URI dataflowServerUri;
+
+	/**
+	 * The optional username for the dataflow server that will receive task launch requests.
+	 * Used to access the the dataflow server using Basic Authentication.
+	 */
+	private String dataflowServerUsername;
+
+	/**
+	 * The optional password for the dataflow server that will receive task launch requests.
+	 * Used to access the the dataflow server using Basic Authentication.
+	 */
+	private String dataflowServerPassword;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -150,6 +163,22 @@ public class ComposedTaskProperties {
 
 	public void setDataflowServerUri(URI dataflowServerUri) {
 		this.dataflowServerUri = dataflowServerUri;
+	}
+
+	public String getDataflowServerUsername() {
+		return dataflowServerUsername;
+	}
+
+	public void setDataflowServerUsername(String dataflowServerUsername) {
+		this.dataflowServerUsername = dataflowServerUsername;
+	}
+
+	public String getDataflowServerPassword() {
+		return dataflowServerPassword;
+	}
+
+	public void setDataflowServerPassword(String dataflowServerPassword) {
+		this.dataflowServerPassword = dataflowServerPassword;
 	}
 
 	public String getGraph() {
