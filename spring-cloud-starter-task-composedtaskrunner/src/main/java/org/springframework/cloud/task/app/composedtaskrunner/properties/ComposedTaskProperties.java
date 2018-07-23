@@ -34,7 +34,7 @@ public class ComposedTaskProperties {
 
 	public static final int INTERVAL_TIME_BETWEEN_CHECKS_DEFAULT = 10000;
 
-	public static final int SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT = 1;
+	public static final int SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT = 4;
 
 	public static final int SPLIT_THREAD_KEEP_ALIVE_SECONDS_DEFAULT = 60;
 
@@ -95,7 +95,7 @@ public class ComposedTaskProperties {
 
 	/**
 	 * Split's core pool size.
-	 * Default is 1;
+	 * Default is 4;
 	 */
 	private int splitThreadCorePoolSize = SPLIT_THREAD_CORE_POOL_SIZE_DEFAULT;
 
