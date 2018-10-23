@@ -44,6 +44,8 @@ import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecuti
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.cloud.task.repository.TaskRepository;
+import org.springframework.cloud.task.repository.dao.JdbcTaskExecutionDao;
+import org.springframework.cloud.task.repository.dao.TaskExecutionDao;
 import org.springframework.cloud.task.repository.support.SimpleTaskExplorer;
 import org.springframework.cloud.task.repository.support.SimpleTaskRepository;
 import org.springframework.cloud.task.repository.support.TaskExecutionDaoFactoryBean;
@@ -79,6 +81,9 @@ public class TaskLauncherTaskletTests {
 
 	@Autowired
 	private TaskRepositoryInitializer taskRepositoryInitializer;
+
+	@Autowired
+	private JdbcTaskExecutionDao taskExecutionDao;
 
 	private TaskOperations taskOperations;
 
@@ -192,10 +197,29 @@ public class TaskLauncherTaskletTests {
 
 	}
 
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletNullResult() throws Exception {
+		boolean isException = false;
+		mockReturnValForTaskExecution(1L);
+		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
+		ChunkContext chunkContext = chunkContext();
+		getCompleteTaskExecutionWithNull();
+		Throwable exception = assertThrows(UnexpectedJobExecutionException.class,
+				() -> execute(taskLauncherTasklet, null, chunkContext));
+		Assertions.assertThat(exception.getMessage()).isEqualTo("Task returned a non zero exit code.");
+	}
+
 	private void createCompleteTaskExecution(int exitCode) {
 		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
 		this.taskRepository.completeTaskExecution(taskExecution.getExecutionId(),
 				exitCode, new Date(), "");
+	}
+
+	private TaskExecution getCompleteTaskExecutionWithNull() {
+		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
+		taskExecutionDao.completeTaskExecution(taskExecution.getExecutionId(), null, new Date(), "hello", "goodbye");
+		return taskExecution;
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
@@ -231,6 +255,11 @@ public class TaskLauncherTaskletTests {
 		@Bean
 		TaskRepositoryInitializer taskRepositoryInitializer() {
 			return new TaskRepositoryInitializer();
+		}
+
+		@Bean
+		TaskExecutionDao taskExecutionDao(DataSource dataSource) {
+			return new JdbcTaskExecutionDao(dataSource);
 		}
 
 	}
