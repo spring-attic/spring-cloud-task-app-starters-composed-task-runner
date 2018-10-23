@@ -147,7 +147,10 @@ public class TaskLauncherTasklet implements Tasklet {
 			TaskExecution taskExecution =
 					this.taskExplorer.getTaskExecution(this.executionId);
 			if (taskExecution != null && taskExecution.getEndTime() != null) {
-				if (taskExecution.getExitCode() != 0) {
+				if (taskExecution.getExitCode() == null) {
+					throw new UnexpectedJobExecutionException("Task returned a null exit code.");
+				}
+				else if (taskExecution.getExitCode() != 0) {
 					throw new UnexpectedJobExecutionException("Task returned a non zero exit code.");
 				}
 				else {
