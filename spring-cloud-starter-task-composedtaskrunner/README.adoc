@@ -173,7 +173,7 @@ $ ./mvnw clean package
 ```
 
 == Example
-`java -jar composedtaskrunner-task-{version}.jar --graph=<your graph syntax>`
+`java -jar composedtaskrunner-task-{version}.jar --graph=<your graph syntax> --spring.cloud.task.closecontextEnabled=true`
 
 == Contributing
 
