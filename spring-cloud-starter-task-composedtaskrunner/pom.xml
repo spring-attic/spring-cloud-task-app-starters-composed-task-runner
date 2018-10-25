@@ -61,6 +61,7 @@
             <plugin>
                 <groupId>org.springframework.cloud.stream.app.plugin</groupId>
                 <artifactId>spring-cloud-stream-app-maven-plugin</artifactId>
+                <version>1.2.10.BUILD-SNAPSHOT</version>
                 <configuration>
                     <generatedProjectHome>${session.executionRootDirectory}/apps</generatedProjectHome>
                     <generatedProjectVersion>${project.version}</generatedProjectVersion>
@@ -75,6 +76,9 @@
                             <autoConfigClass>org.springframework.cloud.task.app.composedtaskrunner.ComposedTaskRunnerConfiguration.class</autoConfigClass>
                         </composedtaskrunner-task>
                     </generatedApps>
+                    <additionalAppProperties>
+                        <additionalAppProperty>spring.cloud.task.closecontextEnabled=true</additionalAppProperty>
+                    </additionalAppProperties>
                 </configuration>
             </plugin>
         </plugins>
