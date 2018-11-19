@@ -19,6 +19,7 @@ package org.springframework.cloud.task.app.composedtaskrunner;
 import java.util.Date;
 
 import javax.sql.DataSource;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,11 +27,13 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -54,10 +57,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -96,7 +97,7 @@ public class TaskLauncherTaskletTests {
 				new TaskExecutionDaoFactoryBean(this.dataSource);
 		this.taskRepository = new SimpleTaskRepository(taskExecutionDaoFactoryBean);
 		this.taskExplorer = new SimpleTaskExplorer(taskExecutionDaoFactoryBean);
-		composedTaskProperties.setIntervalTimeBetweenChecks(500);
+		this.composedTaskProperties.setIntervalTimeBetweenChecks(500);
 	}
 
 	@Test
@@ -107,7 +108,7 @@ public class TaskLauncherTaskletTests {
 				getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		mockReturnValForTaskExecution(1L);
-		taskLauncherTasklet.execute(null, chunkContext);
+		execute(taskLauncherTasklet, null, chunkContext);
 		assertEquals(1L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
@@ -116,7 +117,7 @@ public class TaskLauncherTaskletTests {
 		chunkContext = chunkContext();
 		createCompleteTaskExecution(0);
 		taskLauncherTasklet = getTaskExecutionTasklet();
-		taskLauncherTasklet.execute(null, chunkContext);
+		execute(taskLauncherTasklet, null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
@@ -124,26 +125,20 @@ public class TaskLauncherTaskletTests {
 
 	@Test
 	@DirtiesContext
-	public void testTaskLauncherTaskletTimeout() throws Exception {
-		boolean isException = false;
+	public void testTaskLauncherTaskletTimeout() {
 		mockReturnValForTaskExecution(1L);
 		this.composedTaskProperties.setMaxWaitTime(1000);
+		this.composedTaskProperties.setIntervalTimeBetweenChecks(1000);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
-		try {
-			taskLauncherTasklet.execute(null, chunkContext);
-		}
-		catch (TaskExecutionTimeoutException te) {
-			isException = true;
-			assertThat(te.getMessage(),is(equalTo("Timeout occurred while " +
-					"processing task with Execution Id 1")));
-		}
-		assertThat(isException,is(true));
+		Throwable exception = assertThrows(TaskExecutionTimeoutException.class, () -> execute(taskLauncherTasklet, null, chunkContext));
+		Assertions.assertThat(exception.getMessage()).isEqualTo("Timeout occurred while " +
+				"processing task with Execution Id 1");
 	}
+
 	@Test
 	@DirtiesContext
-	public void testInvalidTaskName() throws Exception {
-		String exceptionMessage = null;
+	public void testInvalidTaskName() {
 		final String ERROR_MESSAGE =
 				"Could not find task definition named " + TASK_NAME;
 		VndErrors errors = new VndErrors("message", ERROR_MESSAGE, new Link("ref"));
@@ -154,19 +149,14 @@ public class TaskLauncherTaskletTests {
 						ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
-		try {
-			taskLauncherTasklet.execute(null, chunkContext);
-		}
-		catch (DataFlowClientException dfce) {
-			exceptionMessage = dfce.getMessage();
-		}
-		assertEquals(ERROR_MESSAGE+"\n", exceptionMessage);
+		Throwable exception = assertThrows(DataFlowClientException.class,
+				() -> taskLauncherTasklet.execute(null, chunkContext));
+		Assertions.assertThat(exception.getMessage()).isEqualTo(ERROR_MESSAGE + "\n");
 	}
 
 	@Test
 	@DirtiesContext
-	public void testNoDataFlowServer() throws Exception {
-		String exceptionMessage = null;
+	public void testNoDataFlowServer() {
 		final String ERROR_MESSAGE =
 				"I/O error on GET request for \"http://localhost:9393\": Connection refused; nested exception is java.net.ConnectException: Connection refused";
 		Mockito.doThrow(new ResourceAccessException(ERROR_MESSAGE))
@@ -175,31 +165,31 @@ public class TaskLauncherTaskletTests {
 				ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
-		try {
-			taskLauncherTasklet.execute(null, chunkContext);
-		}
-		catch (ResourceAccessException rae) {
-			exceptionMessage = rae.getMessage();
-		}
-		assertEquals(ERROR_MESSAGE, exceptionMessage);
+		Throwable exception = assertThrows(ResourceAccessException.class,
+				() -> execute(taskLauncherTasklet, null, chunkContext));
+		Assertions.assertThat(exception.getMessage()).isEqualTo(ERROR_MESSAGE);
 	}
 
 	@Test
 	@DirtiesContext
-	public void testTaskLauncherTaskletFailure() throws Exception {
-		boolean isException = false;
+	public void testTaskLauncherTaskletFailure() {
 		mockReturnValForTaskExecution(1L);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		createCompleteTaskExecution(1);
-		try {
-			taskLauncherTasklet.execute(null, chunkContext);
+		Throwable exception = assertThrows(UnexpectedJobExecutionException.class,
+				() -> execute(taskLauncherTasklet, null, chunkContext));
+		Assertions.assertThat(exception.getMessage()).isEqualTo("Task returned a non zero exit code.");
+	}
+
+	private RepeatStatus execute(TaskLauncherTasklet taskLauncherTasklet, StepContribution contribution,
+			ChunkContext chunkContext)  throws Exception{
+		RepeatStatus status = taskLauncherTasklet.execute(contribution, chunkContext);
+		if (!status.isContinuable()) {
+			throw new IllegalStateException("Expected continuable status for the first execution.");
 		}
-		catch (UnexpectedJobExecutionException jobExecutionException) {
-			isException = true;
-			assertThat(jobExecutionException.getMessage(),is(equalTo("Task returned a non zero exit code.")));
-		}
-		assertThat(isException,is(true));
+		return taskLauncherTasklet.execute(contribution, chunkContext);
+
 	}
 
 	private void createCompleteTaskExecution(int exitCode) {

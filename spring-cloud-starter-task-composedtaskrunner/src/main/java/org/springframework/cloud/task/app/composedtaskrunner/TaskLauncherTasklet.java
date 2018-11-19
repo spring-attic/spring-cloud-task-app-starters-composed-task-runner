@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
  * Executes task launch request using Spring Cloud Data Flow's Restful API
  * then returns the execution id once the task launched.
  *
+ * Note: This class is not thread-safe and as such should not be used as a singleton.
+ *
  * @author Glenn Renfro
  */
 public class TaskLauncherTasklet implements Tasklet {
@@ -58,6 +60,10 @@ public class TaskLauncherTasklet implements Tasklet {
 	private String taskName;
 
 	private static final Log logger = LogFactory.getLog(TaskLauncherTasklet.class);
+
+	private Long executionId;
+
+	private long timeout;
 
 
 	public TaskLauncherTasklet(
@@ -96,44 +102,40 @@ public class TaskLauncherTasklet implements Tasklet {
 	/**
 	 * Executes the task as specified by the taskName with the associated
 	 * properties and arguments.
+	 *
 	 * @param contribution mutable state to be passed back to update the current step execution
 	 * @param chunkContext contains the task-execution-id used by the listener.
 	 * @return Repeat status of FINISHED.
 	 */
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
-			ChunkContext chunkContext) throws Exception {
-		String tmpTaskName = this.taskName.substring(0,
-				this.taskName.lastIndexOf('_'));
+			ChunkContext chunkContext) {
+		if (this.executionId == null) {
+			this.timeout = System.currentTimeMillis() +
+					this.composedTaskProperties.getMaxWaitTime();
+			logger.debug("Wait time for this task to complete is " +
+					this.composedTaskProperties.getMaxWaitTime());
+			logger.debug("Interval check time for this task to complete is " +
+					this.composedTaskProperties.getIntervalTimeBetweenChecks());
 
-		List<String> args = this.arguments;
+			String tmpTaskName = this.taskName.substring(0,
+					this.taskName.lastIndexOf('_'));
 
-		ExecutionContext stepExecutionContext = chunkContext.getStepContext().getStepExecution().
-				getExecutionContext();
-		if(stepExecutionContext.containsKey("task-arguments")) {
-			args = (List<String>) stepExecutionContext.get("task-arguments");
+			List<String> args = this.arguments;
+
+			ExecutionContext stepExecutionContext = chunkContext.getStepContext().getStepExecution().
+					getExecutionContext();
+			if (stepExecutionContext.containsKey("task-arguments")) {
+				args = (List<String>) stepExecutionContext.get("task-arguments");
+			}
+
+			this.executionId = this.taskOperations.launch(tmpTaskName,
+					this.properties, args);
+
+			stepExecutionContext.put("task-execution-id", executionId);
+			stepExecutionContext.put("task-arguments", args);
 		}
-
-		long executionId = this.taskOperations.launch(tmpTaskName,
-				this.properties, args);
-
-		stepExecutionContext.put("task-execution-id", executionId);
-		stepExecutionContext.put("task-arguments", args);
-
-		waitForTaskToComplete(executionId);
-
-		return RepeatStatus.FINISHED;
-	}
-
-	private void waitForTaskToComplete(long taskExecutionId) {
-		long timeout = System.currentTimeMillis() +
-				this.composedTaskProperties.getMaxWaitTime();
-		logger.debug("Wait time for this task to complete is " +
-				this.composedTaskProperties.getMaxWaitTime());
-		logger.debug("Interval check time for this task to complete is " +
-				this.composedTaskProperties.getIntervalTimeBetweenChecks());
-
-		while (true) {
+		else {
 			try {
 				Thread.sleep(this.composedTaskProperties.getIntervalTimeBetweenChecks());
 			}
@@ -143,21 +145,23 @@ public class TaskLauncherTasklet implements Tasklet {
 			}
 
 			TaskExecution taskExecution =
-					this.taskExplorer.getTaskExecution(taskExecutionId);
-			if(taskExecution != null && taskExecution.getEndTime() != null) {
-				if(taskExecution.getExitCode() != 0 ) {
+					this.taskExplorer.getTaskExecution(this.executionId);
+			if (taskExecution != null && taskExecution.getEndTime() != null) {
+				if (taskExecution.getExitCode() != 0) {
 					throw new UnexpectedJobExecutionException("Task returned a non zero exit code.");
 				}
-				break;
+				else {
+					return RepeatStatus.FINISHED;
+				}
 			}
-
-			if(this.composedTaskProperties.getMaxWaitTime() > 0 &&
+			if (this.composedTaskProperties.getMaxWaitTime() > 0 &&
 					System.currentTimeMillis() > timeout) {
 				throw new TaskExecutionTimeoutException(String.format(
 						"Timeout occurred while processing task with Execution Id %s",
-						taskExecutionId));
+						this.executionId));
 			}
 		}
+		return RepeatStatus.CONTINUABLE;
 	}
 
 }

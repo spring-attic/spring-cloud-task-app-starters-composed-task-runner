@@ -31,7 +31,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerJobFactory;
 import org.springframework.cloud.task.app.composedtaskrunner.ComposedRunnerVisitor;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -46,7 +45,6 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
  */
 @Configuration
 @EnableBatchProcessing
-@EnableTask
 @EnableConfigurationProperties(ComposedTaskProperties.class)
 public class ComposedRunnerVisitorConfiguration {
 
