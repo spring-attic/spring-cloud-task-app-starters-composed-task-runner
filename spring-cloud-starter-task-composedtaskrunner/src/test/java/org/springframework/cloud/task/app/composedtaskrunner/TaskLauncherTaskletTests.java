@@ -26,11 +26,13 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -96,7 +98,7 @@ public class TaskLauncherTaskletTests {
 				new TaskExecutionDaoFactoryBean(this.dataSource);
 		this.taskRepository = new SimpleTaskRepository(taskExecutionDaoFactoryBean);
 		this.taskExplorer = new SimpleTaskExplorer(taskExecutionDaoFactoryBean);
-		composedTaskProperties.setIntervalTimeBetweenChecks(500);
+		this.composedTaskProperties.setIntervalTimeBetweenChecks(500);
 	}
 
 	@Test
@@ -107,7 +109,7 @@ public class TaskLauncherTaskletTests {
 				getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		mockReturnValForTaskExecution(1L);
-		taskLauncherTasklet.execute(null, chunkContext);
+		execute(taskLauncherTasklet, null, chunkContext);
 		assertEquals(1L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
@@ -116,7 +118,7 @@ public class TaskLauncherTaskletTests {
 		chunkContext = chunkContext();
 		createCompleteTaskExecution(0);
 		taskLauncherTasklet = getTaskExecutionTasklet();
-		taskLauncherTasklet.execute(null, chunkContext);
+		execute(taskLauncherTasklet, null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
@@ -128,10 +130,11 @@ public class TaskLauncherTaskletTests {
 		boolean isException = false;
 		mockReturnValForTaskExecution(1L);
 		this.composedTaskProperties.setMaxWaitTime(1000);
+		this.composedTaskProperties.setIntervalTimeBetweenChecks(1000);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
-			taskLauncherTasklet.execute(null, chunkContext);
+			execute(taskLauncherTasklet, null, chunkContext);
 		}
 		catch (TaskExecutionTimeoutException te) {
 			isException = true;
@@ -155,7 +158,7 @@ public class TaskLauncherTaskletTests {
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
-			taskLauncherTasklet.execute(null, chunkContext);
+			execute(taskLauncherTasklet, null, chunkContext);
 		}
 		catch (DataFlowClientException dfce) {
 			exceptionMessage = dfce.getMessage();
@@ -176,7 +179,7 @@ public class TaskLauncherTaskletTests {
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
-			taskLauncherTasklet.execute(null, chunkContext);
+			execute(taskLauncherTasklet, null, chunkContext);
 		}
 		catch (ResourceAccessException rae) {
 			exceptionMessage = rae.getMessage();
@@ -193,13 +196,23 @@ public class TaskLauncherTaskletTests {
 		ChunkContext chunkContext = chunkContext();
 		createCompleteTaskExecution(1);
 		try {
-			taskLauncherTasklet.execute(null, chunkContext);
+			execute(taskLauncherTasklet, null, chunkContext);
 		}
 		catch (UnexpectedJobExecutionException jobExecutionException) {
 			isException = true;
 			assertThat(jobExecutionException.getMessage(),is(equalTo("Task returned a non zero exit code.")));
 		}
 		assertThat(isException,is(true));
+	}
+
+	private RepeatStatus execute(TaskLauncherTasklet taskLauncherTasklet, StepContribution contribution,
+			ChunkContext chunkContext)  throws Exception{
+		RepeatStatus status = taskLauncherTasklet.execute(contribution, chunkContext);
+		if (!status.isContinuable()) {
+			throw new IllegalStateException("Expected continuable status for the first execution.");
+		}
+		return taskLauncherTasklet.execute(contribution, chunkContext);
+
 	}
 
 	private void createCompleteTaskExecution(int exitCode) {
