@@ -66,6 +66,7 @@ If an `ExitStatus` 'FAILED' is returned in a sequence the Composed Task
 Runner will terminate.  For example if `AAA && BBB && CCC` composed task is
 executed and BBB fails.  Then CCC will not be launched.
 
+[[ctr-transitional-execution]]
 === Transitions
 The Composed Task Runner supports the ability to control what tasks get
 executed based on the `ExitStatus` of the previous task.  This is
@@ -122,6 +123,9 @@ will be launched in the sequence enumerated above.  However if one of the task
 definitions fails in the split then DDD and EEE will not fire.  For example if
 BBB fails then AAA and CCC will be marked successful and BBB will be marked a
 failure and DDD and EEE will not be launched.
+
+NOTE: Tasks that are used in a split should not set the their `ExitMessage`.   Setting the `ExitMessage` is only to be used
+with <<ctr-transitional-execution, transitions>>.
 
 == Options
 
