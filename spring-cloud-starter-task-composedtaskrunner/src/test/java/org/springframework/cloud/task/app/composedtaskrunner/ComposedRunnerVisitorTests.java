@@ -43,6 +43,7 @@ import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfigurati
 import org.springframework.cloud.dataflow.core.dsl.TaskValidationException;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.ComposedRunnerVisitorConfiguration;
 import org.springframework.cloud.task.batch.configuration.TaskBatchAutoConfiguration;
+import org.springframework.cloud.task.configuration.SimpleTaskAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static junit.framework.TestCase.assertTrue;
@@ -383,7 +384,8 @@ public class ComposedRunnerVisitorTests {
 				PropertyPlaceholderAutoConfiguration.class,
 				EmbeddedDataSourceConfiguration.class,
 				BatchAutoConfiguration.class,
-				TaskBatchAutoConfiguration.class}, args);
+				TaskBatchAutoConfiguration.class,
+				SimpleTaskAutoConfiguration.class}, args);
 	}
 
 	private Collection<StepExecution> getStepExecutions() {
