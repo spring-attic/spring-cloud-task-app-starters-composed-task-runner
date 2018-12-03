@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.listener.StepExecutionListenerSupport;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.util.Assert;
@@ -36,13 +37,12 @@ import org.springframework.util.StringUtils;
  */
 public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupport{
 
+	@Autowired
 	private TaskExplorer taskExplorer;
 
 	private static final Log logger = LogFactory.getLog(ComposedTaskStepExecutionListener.class);
 
-	public ComposedTaskStepExecutionListener(TaskExplorer taskExplorer) {
-		Assert.notNull(taskExplorer, "taskExplorer must not be null.");
-		this.taskExplorer = taskExplorer;
+	public ComposedTaskStepExecutionListener() {
 	}
 
 	/**

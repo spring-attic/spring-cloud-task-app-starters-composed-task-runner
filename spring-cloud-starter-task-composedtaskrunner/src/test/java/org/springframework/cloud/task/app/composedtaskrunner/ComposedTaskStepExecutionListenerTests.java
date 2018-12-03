@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 
 import org.junit.Before;
@@ -47,12 +48,15 @@ public class ComposedTaskStepExecutionListenerTests {
 	private ComposedTaskStepExecutionListener taskListener;
 
 	@Before
-	public void setup() {
+	public void setup() throws NoSuchFieldException, IllegalAccessException{
 		this.taskExplorer = mock(TaskExplorer.class);
 		this.properties = new ComposedTaskProperties();
 		this.stepExecution = getStepExecution();
 		this.taskListener =
-				new ComposedTaskStepExecutionListener(this.taskExplorer);
+				new ComposedTaskStepExecutionListener();
+		Field field = this.taskListener.getClass().getDeclaredField("taskExplorer");
+		field.setAccessible(true);
+		field.set(this.taskListener, this.taskExplorer);
 
 	}
 
