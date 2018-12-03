@@ -24,12 +24,12 @@ import org.junit.Test;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,8 +40,6 @@ public class ComposedTaskStepExecutionListenerTests {
 
 	private TaskExplorer taskExplorer;
 
-	private ComposedTaskProperties properties;
-
 	private StepExecution stepExecution;
 
 	private ComposedTaskStepExecutionListener taskListener;
@@ -49,11 +47,10 @@ public class ComposedTaskStepExecutionListenerTests {
 	@Before
 	public void setup() {
 		this.taskExplorer = mock(TaskExplorer.class);
-		this.properties = new ComposedTaskProperties();
 		this.stepExecution = getStepExecution();
 		this.taskListener =
 				new ComposedTaskStepExecutionListener(this.taskExplorer);
-
+		ReflectionTestUtils.setField(this.taskListener, "taskExplorer", this.taskExplorer);
 	}
 
 	@Test

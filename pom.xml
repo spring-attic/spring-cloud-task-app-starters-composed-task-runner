@@ -17,6 +17,10 @@
 		<module>composedtaskrunner-task-app-dependencies</module>
 	</modules>
 
+	<properties>
+		<junit.version>5.3.1</junit.version>
+	</properties>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

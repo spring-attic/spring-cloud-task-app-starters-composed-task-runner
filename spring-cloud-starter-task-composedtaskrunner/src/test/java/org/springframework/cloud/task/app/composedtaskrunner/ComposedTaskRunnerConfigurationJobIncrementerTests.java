@@ -20,14 +20,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
-import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,8 +36,6 @@ import org.springframework.util.Assert;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes={EmbeddedDataSourceConfiguration.class,
-		TaskLauncherTaskletTests.TestConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class,
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
@@ -52,18 +46,12 @@ public class ComposedTaskRunnerConfigurationJobIncrementerTests {
 	private JobRepository jobRepository;
 
 	@Autowired
-	private JobExplorer jobExplorer;
-
-	@Autowired
 	protected Job job;
-
-	@Autowired
-	private TaskOperations taskOperations;
 
 	@Test
 	@DirtiesContext
 	public void testComposedConfigurationWithJobIncrementer() throws Exception {
-		JobExecution jobExecution = this.jobRepository.createJobExecution(
+		this.jobRepository.createJobExecution(
 				"ComposedTest", new JobParameters());
 		Assert.notNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must not be null.");
 	}
