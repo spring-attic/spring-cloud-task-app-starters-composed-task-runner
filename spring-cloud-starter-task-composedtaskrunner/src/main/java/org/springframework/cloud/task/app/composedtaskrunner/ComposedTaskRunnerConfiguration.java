@@ -25,6 +25,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.SimpleTaskAutoConfiguration;
 import org.springframework.cloud.task.configuration.TaskConfigurer;
+import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,8 +47,8 @@ public class ComposedTaskRunnerConfiguration {
 	private ComposedTaskProperties properties;
 
 	@Bean
-	public StepExecutionListener composedTaskStepExecutionListener(){
-		return new ComposedTaskStepExecutionListener();
+	public StepExecutionListener composedTaskStepExecutionListener(TaskExplorer taskExplorer){
+		return new ComposedTaskStepExecutionListener(taskExplorer);
 	}
 
 	@Bean

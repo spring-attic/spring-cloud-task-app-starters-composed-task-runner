@@ -53,7 +53,7 @@ public class ComposedTaskStepExecutionListenerTests {
 		this.properties = new ComposedTaskProperties();
 		this.stepExecution = getStepExecution();
 		this.taskListener =
-				new ComposedTaskStepExecutionListener();
+				new ComposedTaskStepExecutionListener(this.taskExplorer);
 		Field field = this.taskListener.getClass().getDeclaredField("taskExplorer");
 		field.setAccessible(true);
 		field.set(this.taskListener, this.taskExplorer);
