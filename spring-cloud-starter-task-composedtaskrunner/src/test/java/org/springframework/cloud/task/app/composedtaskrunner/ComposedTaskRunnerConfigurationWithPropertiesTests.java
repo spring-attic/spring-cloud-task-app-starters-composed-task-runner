@@ -21,25 +21,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.concurrent.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.step.tasklet.TaskletStep;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
-import org.springframework.cache.support.NoOpCacheManager;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -47,7 +40,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.task.app.composedtaskrunner.ComposedTaskRunnerConfigurationWithPropertiesTests.COMPOSED_TASK_PROPS;
 
@@ -56,8 +48,6 @@ import static org.springframework.cloud.task.app.composedtaskrunner.ComposedTask
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes={EmbeddedDataSourceConfiguration.class,
-		TaskLauncherTaskletTests.TestConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class,
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
@@ -77,9 +67,9 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 	private TaskOperations taskOperations;
 
 	@Autowired
-	ComposedTaskProperties composedTaskProperties;
+	private ComposedTaskProperties composedTaskProperties;
 
-	public static final String COMPOSED_TASK_PROPS = "app.AAA.format=yyyy, "
+	protected static final String COMPOSED_TASK_PROPS = "app.AAA.format=yyyy, "
 			+ "app.BBB.format=mm, "
 			+ "deployer.AAA.memory=2048m";
 

@@ -27,7 +27,6 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
@@ -44,8 +43,6 @@ import static org.mockito.Mockito.verify;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes={EmbeddedDataSourceConfiguration.class,
-		TaskLauncherTaskletTests.TestConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class,
 		DataFlowTestConfiguration.class,StepBeanDefinitionRegistrar.class,
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
@@ -69,6 +66,6 @@ public class ComposedTaskRunnerConfigurationNoPropertiesTests {
 		job.execute(jobExecution);
 
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
-		verify(this.taskOperations).launch("AAA", new HashMap<String, String>(0), new ArrayList<String>(0));
+		verify(this.taskOperations).launch("AAA", new HashMap<>(0), new ArrayList<>(0));
 	}
 }

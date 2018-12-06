@@ -17,15 +17,12 @@
 package org.springframework.cloud.task.app.composedtaskrunner;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import javax.sql.DataSource;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import org.springframework.batch.core.JobExecution;
@@ -35,7 +32,6 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
@@ -69,8 +65,7 @@ import static org.mockito.Mockito.mock;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={EmbeddedDataSourceConfiguration.class,
-		TaskLauncherTaskletTests.TestConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class})
+		TaskLauncherTaskletTests.TestConfiguration.class})
 public class TaskLauncherTaskletTests {
 
 	private static final String TASK_NAME = "testTask1_0";
@@ -107,7 +102,7 @@ public class TaskLauncherTaskletTests {
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTasklet() throws Exception{
-		getCompleteTaskExecution(0);
+		createCompleteTaskExecution(0);
 		TaskLauncherTasklet taskLauncherTasklet =
 				getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
@@ -119,7 +114,7 @@ public class TaskLauncherTaskletTests {
 
 		mockReturnValForTaskExecution(2L);
 		chunkContext = chunkContext();
-		getCompleteTaskExecution(0);
+		createCompleteTaskExecution(0);
 		taskLauncherTasklet = getTaskExecutionTasklet();
 		taskLauncherTasklet.execute(null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
@@ -154,9 +149,9 @@ public class TaskLauncherTaskletTests {
 		VndErrors errors = new VndErrors("message", ERROR_MESSAGE, new Link("ref"));
 		Mockito.doThrow(new DataFlowClientException(errors))
 				.when(this.taskOperations)
-				.launch(Matchers.anyString(),
-						(Map<String, String>) Matchers.any(),
-						(List<String>) Matchers.any());
+				.launch(ArgumentMatchers.anyString(),
+						ArgumentMatchers.any(),
+						ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
@@ -170,14 +165,14 @@ public class TaskLauncherTaskletTests {
 
 	@Test
 	@DirtiesContext
-	public void testNoDataFlowServer() throws Exception{
+	public void testNoDataFlowServer() throws Exception {
 		String exceptionMessage = null;
 		final String ERROR_MESSAGE =
 				"I/O error on GET request for \"http://localhost:9393\": Connection refused; nested exception is java.net.ConnectException: Connection refused";
 		Mockito.doThrow(new ResourceAccessException(ERROR_MESSAGE))
-				.when(this.taskOperations).launch(Matchers.anyString(),
-				(Map<String,String>) Matchers.any(),
-				(List<String>) Matchers.any());
+				.when(this.taskOperations).launch(ArgumentMatchers.anyString(),
+				ArgumentMatchers.any(),
+				ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		try {
@@ -196,7 +191,7 @@ public class TaskLauncherTaskletTests {
 		mockReturnValForTaskExecution(1L);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
-		getCompleteTaskExecution(1);
+		createCompleteTaskExecution(1);
 		try {
 			taskLauncherTasklet.execute(null, chunkContext);
 		}
@@ -207,11 +202,10 @@ public class TaskLauncherTaskletTests {
 		assertThat(isException,is(true));
 	}
 
-	private TaskExecution getCompleteTaskExecution(int exitCode) {
+	private void createCompleteTaskExecution(int exitCode) {
 		TaskExecution taskExecution = this.taskRepository.createTaskExecution();
 		this.taskRepository.completeTaskExecution(taskExecution.getExecutionId(),
 				exitCode, new Date(), "");
-		return taskExecution;
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
@@ -234,9 +228,9 @@ public class TaskLauncherTaskletTests {
 	private void mockReturnValForTaskExecution(long executionId) {
 		Mockito.doReturn(executionId)
 				.when(this.taskOperations)
-				.launch(Matchers.anyString(),
-						(Map<String, String>) Matchers.any(),
-						(List<String>) Matchers.any());
+				.launch(ArgumentMatchers.anyString(),
+						ArgumentMatchers.any(),
+						ArgumentMatchers.any());
 	}
 
 	@Configuration
