@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
  * Executes task launch request using Spring Cloud Data Flow's Restful API
  * then returns the execution id once the task launched.
  *
+ * Note: This class is not thread-safe and as such should not be used as a singleton.
+ *
  * @author Glenn Renfro
  */
 public class TaskLauncherTasklet implements Tasklet {
