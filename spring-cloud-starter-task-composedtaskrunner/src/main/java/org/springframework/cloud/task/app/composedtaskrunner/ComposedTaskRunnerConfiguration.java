@@ -21,6 +21,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
+import org.springframework.cloud.task.configuration.EnableTask;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Glenn Renfro
  */
 @EnableBatchProcessing
+@EnableTask
 @EnableConfigurationProperties(ComposedTaskProperties.class)
 @Configuration
 @Import(StepBeanDefinitionRegistrar.class)
