@@ -207,7 +207,7 @@ public class TaskLauncherTaskletTests {
 		getCompleteTaskExecutionWithNull();
 		Throwable exception = assertThrows(UnexpectedJobExecutionException.class,
 				() -> execute(taskLauncherTasklet, null, chunkContext));
-		Assertions.assertThat(exception.getMessage()).isEqualTo("Task returned a non zero exit code.");
+		Assertions.assertThat(exception.getMessage()).isEqualTo("Task returned a null exit code.");
 	}
 
 	private void createCompleteTaskExecution(int exitCode) {
