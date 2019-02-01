@@ -132,7 +132,7 @@ public class TaskLauncherTaskletTests {
 	@DirtiesContext
 	public void testTaskLauncherTaskletTimeout() {
 		mockReturnValForTaskExecution(1L);
-		this.composedTaskProperties.setMaxWaitTime(1000);
+		this.composedTaskProperties.setMaxWaitTime(500);
 		this.composedTaskProperties.setIntervalTimeBetweenChecks(1000);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
