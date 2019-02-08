@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
+import java.util.Collections;
 import java.util.Date;
 
 import javax.sql.DataSource;
@@ -23,6 +24,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.platform.commons.util.CollectionUtils;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -61,6 +63,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
@@ -127,6 +131,64 @@ public class TaskLauncherTaskletTests {
 		assertEquals(2L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
+	}
+
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletIgnoreExitMessage() throws Exception {
+		createCompleteTaskExecution(0);
+
+		TaskLauncherTasklet taskLauncherTasklet =
+				getTaskExecutionTasklet();
+		taskLauncherTasklet.setArguments(Collections.singletonList("--ignoreExitMessage=true"));
+		ChunkContext chunkContext = chunkContext();
+		mockReturnValForTaskExecution(1L);
+		execute(taskLauncherTasklet, null, chunkContext);
+		assertEquals(1L, chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-execution-id"));
+		assertTrue(chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE));
+	}
+
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletIgnoreExitMessageViaProperties() throws Exception {
+		createCompleteTaskExecution(0);
+
+		TaskLauncherTasklet taskLauncherTasklet =
+				getTaskExecutionTasklet();
+		taskLauncherTasklet.setProperties(Collections.singletonMap("app.foo." + TaskLauncherTasklet.IGNORE_EXIT_MESSAGE_PROPERTY, "true"));
+		ChunkContext chunkContext = chunkContext();
+		mockReturnValForTaskExecution(1L);
+		execute(taskLauncherTasklet, null, chunkContext);
+		assertEquals(1L, chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-execution-id"));
+		assertTrue(chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE));
+	}
+
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletIgnoreExitMessageViaCommandLineOverride() throws Exception {
+		createCompleteTaskExecution(0);
+
+		TaskLauncherTasklet taskLauncherTasklet =
+				getTaskExecutionTasklet();
+		taskLauncherTasklet.setArguments(Collections.singletonList("--ignoreExitMessage=false"));
+		taskLauncherTasklet.setProperties(Collections.singletonMap("app.foo." + TaskLauncherTasklet.IGNORE_EXIT_MESSAGE_PROPERTY, "true"));
+		ChunkContext chunkContext = chunkContext();
+		mockReturnValForTaskExecution(1L);
+		execute(taskLauncherTasklet, null, chunkContext);
+		assertEquals(1L, chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-execution-id"));
+		assertFalse(chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE));
 	}
 
 	@Test
@@ -201,7 +263,6 @@ public class TaskLauncherTaskletTests {
 	@Test
 	@DirtiesContext
 	public void testTaskLauncherTaskletNullResult() throws Exception {
-		boolean isException = false;
 		mockReturnValForTaskExecution(1L);
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();

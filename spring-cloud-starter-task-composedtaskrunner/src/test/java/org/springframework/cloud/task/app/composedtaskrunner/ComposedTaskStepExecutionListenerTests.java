@@ -73,6 +73,17 @@ public class ComposedTaskStepExecutionListenerTests {
 	}
 
 	@Test
+	public void testExitMessageRunSuccessIgnoreExitMessage() {
+		ExitStatus expectedTaskStatus =  new ExitStatus("TEST_EXIT_MESSAGE");
+		TaskExecution taskExecution = getDefaultTaskExecution(0,
+				expectedTaskStatus.getExitCode());
+		when(this.taskExplorer.getTaskExecution(anyLong())).thenReturn(taskExecution);
+		populateExecutionContextIgnoreExitMessage(111L);
+
+		assertEquals(ExitStatus.COMPLETED, this.taskListener.afterStep(this.stepExecution));
+	}
+
+	@Test
 	public void testExitMessageRunFail() {
 		ExitStatus expectedTaskStatus = new ExitStatus("TEST_EXIT_MESSAGE");
 		TaskExecution taskExecution = getDefaultTaskExecution(1,
@@ -111,6 +122,12 @@ public class ComposedTaskStepExecutionListenerTests {
 	private void populateExecutionContext(Long taskExecutionId) {
 		this.stepExecution.getExecutionContext().put("task-execution-id",
 				taskExecutionId);
+	}
+
+	private void populateExecutionContextIgnoreExitMessage(Long taskExecutionId) {
+		this.stepExecution.getExecutionContext().put("task-execution-id",
+				taskExecutionId);
+		this.stepExecution.getExecutionContext().put(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE, "true");
 	}
 
 	private TaskExecution getDefaultTaskExecution (int exitCode,
