@@ -21,6 +21,7 @@ import java.util.Date;
 import javax.sql.DataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -156,7 +157,7 @@ public class TaskLauncherTaskletTests {
 		ChunkContext chunkContext = chunkContext();
 		Throwable exception = assertThrows(DataFlowClientException.class,
 				() -> taskLauncherTasklet.execute(null, chunkContext));
-		Assertions.assertThat(exception.getMessage()).isEqualTo(ERROR_MESSAGE + "\n");
+		Assertions.assertThat(exception.getMessage()).isEqualTo(ERROR_MESSAGE);
 	}
 
 	@Test
