@@ -54,7 +54,7 @@ import static org.springframework.cloud.task.app.composedtaskrunner.ComposedTask
 @TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1010",
 		"composed-task-properties=" + COMPOSED_TASK_PROPS ,
 		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo",
-		"dataflow-server-uri=http://bar"})
+		"dataflow-server-uri=https://bar"})
 public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired
@@ -86,7 +86,7 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 		assertEquals(COMPOSED_TASK_PROPS, composedTaskProperties.getComposedTaskProperties());
 		assertEquals(1010, composedTaskProperties.getMaxWaitTime());
 		assertEquals(1100, composedTaskProperties.getIntervalTimeBetweenChecks());
-		assertEquals("http://bar", composedTaskProperties.getDataflowServerUri().toASCIIString());
+		assertEquals("https://bar", composedTaskProperties.getDataflowServerUri().toASCIIString());
 		List<String> args = new ArrayList<>(1);
 		args.add("--baz=boo");
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
