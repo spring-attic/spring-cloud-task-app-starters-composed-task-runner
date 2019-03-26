@@ -8,7 +8,7 @@ passed in via the `--graph` command line argument.
 
 == Overview
 The Composed Task Runner parses the graph DSL and for each node in the graph it
-will execute a restful call against a specified http://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/[Spring Cloud Data Flow]
+will execute a restful call against a specified https://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/[Spring Cloud Data Flow]
 instance to launch the associated task definition.  For each task definition that is executed the
 Composed Task Runner will poll the database to verify that the task completed.
 Once complete the Composed Task Runner will either continue to the next task in
@@ -25,9 +25,9 @@ the use of sequences, transitions, splits, or a combination therein.
 
 == Traversing the graph
 Composed Task Runner is built using
-http://docs.spring.io/spring-batch/reference/html/[Spring Batch]
+https://docs.spring.io/spring-batch/reference/html/[Spring Batch]
 to execute the directed graph.   As such each node in the graph is a
-http://docs.spring.io/spring-batch/reference/html/domain.html#domainStep[Step].
+https://docs.spring.io/spring-batch/reference/html/domain.html#domainStep[Step].
 As discussed in the overview, each step in the graph will post a request to a
 Spring Cloud Data Flow Server to execute a task definition.  If the task launched by
 the step fails to complete within the time specified by the `maxWaitTime`
