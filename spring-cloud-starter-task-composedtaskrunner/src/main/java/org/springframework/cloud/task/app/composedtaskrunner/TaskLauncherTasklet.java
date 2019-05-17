@@ -140,13 +140,9 @@ public class TaskLauncherTasklet implements Tasklet {
 			this.executionId = this.taskOperations.launch(tmpTaskName,
 					this.properties, args);
 
-			IgnoreExitMessage ignoreExitMessage = isIgnoreExitMessageSetViaArgs(args);
-			if (ignoreExitMessage.equals(IgnoreExitMessage.TRUE)) {
-				stepExecutionContext.put(IGNORE_EXIT_MESSAGE, true);
-			}
-			else if (ignoreExitMessage.equals(IgnoreExitMessage.NEUTRAL) &&
-					isIgnoreExitMessageSetViaProperty(this.properties)) {
-				stepExecutionContext.put(IGNORE_EXIT_MESSAGE, true);
+			Boolean ignoreExitMessage = isIgnoreExitMessage(args, this.properties);
+			if (ignoreExitMessage != null) {
+				stepExecutionContext.put(IGNORE_EXIT_MESSAGE, ignoreExitMessage);
 			}
 			stepExecutionContext.put("task-execution-id", this.executionId);
 			stepExecutionContext.put("task-arguments", args);
@@ -201,17 +197,32 @@ public class TaskLauncherTasklet implements Tasklet {
 				}
 			}
 		}
-
 		return result;
 	}
 
-
-	private IgnoreExitMessage isIgnoreExitMessageSetViaArgs(List<String> args) {
-		IgnoreExitMessage result = IgnoreExitMessage.NEUTRAL;
+	private Boolean isIgnoreExitMessage(List<String> args, Map<String, String> properties) {
+		Boolean result = null;
+		if (properties != null) {
+			for (String key : properties.keySet()) {
+				if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+				else if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY_HYPHEN)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+			}
+		}
 		if (args != null) {
 			for (String arg : args) {
-				result= isIgnoreExitMessageSet(arg);
-				if(!result.equals(IgnoreExitMessage.NEUTRAL)) {
+				Boolean commandLineResult = isIgnoreExitMessageSetInCmdLine(arg);
+				if(commandLineResult != null) {
+					result = commandLineResult;
 					break;
 				}
 			}
@@ -219,8 +230,8 @@ public class TaskLauncherTasklet implements Tasklet {
 		return result;
 	}
 
-	private IgnoreExitMessage isIgnoreExitMessageSet(String commandLine) {
-		IgnoreExitMessage result = IgnoreExitMessage.NEUTRAL;
+	private Boolean isIgnoreExitMessageSetInCmdLine(String commandLine) {
+		Boolean result = null;
 		String[] parsedCommandLine = StringUtils.delimitedListToStringArray(commandLine, " ");
 		List<String> args = CollectionUtils.arrayToList(parsedCommandLine);
 		for (String arg : args) {
@@ -231,16 +242,14 @@ public class TaskLauncherTasklet implements Tasklet {
 					// todo: should key only be a "flag" as in: put(key, true)?
 					String val = arg.substring(firstEquals + 1).trim();
 					if (val.toLowerCase().equals("true")) {
-						result = IgnoreExitMessage.TRUE;
+						result = true;
 						break;
 					} else {
-						result = IgnoreExitMessage.FALSE;
+						result = false;
 					}
 				}
 			}
 		}
 		return result;
 	}
-
-	enum IgnoreExitMessage {NEUTRAL, TRUE, FALSE}
 }

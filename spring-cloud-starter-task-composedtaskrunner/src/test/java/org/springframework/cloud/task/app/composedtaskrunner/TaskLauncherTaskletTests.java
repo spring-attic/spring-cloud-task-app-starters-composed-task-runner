@@ -186,9 +186,15 @@ public class TaskLauncherTaskletTests {
 		assertEquals(1L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
-		assertFalse(chunkContext.getStepContext()
+		boolean value = chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE);
+		assertTrue(chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE));
+		assertFalse((Boolean)chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE));
 	}
 
 	@Test
