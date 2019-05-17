@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Glenn Renfro
  */
-public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupport{
+public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupport {
 
 	private TaskExplorer taskExplorer;
 
@@ -48,10 +48,12 @@ public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupp
 	/**
 	 * If endTime for task is null then the ExitStatus will be set to  UNKNOWN.
 	 * If an exitMessage is returned by the TaskExecution then the exit status
-	 * returned will be the ExitMessage.  If no exitMessage is set for the task execution and the
-	 * task returns an exitCode ! = to zero an exit status of FAILED is
-	 * returned.  If no exit message is set and the exit code of the task is
-	 * zero then the ExitStatus of COMPLETED is returned.
+	 * returned will be the ExitMessage.  If no exitMessage is set for the task execution or
+	 * {@link TaskLauncherTasklet#IGNORE_EXIT_MESSAGE_PROPERTY} is set as a task property
+	 * and the task returns an exitCode != to zero an exit status of FAILED is
+	 * returned.  If no exit message is set or
+	 * {@link TaskLauncherTasklet#IGNORE_EXIT_MESSAGE_PROPERTY} is set as a task property
+	 * and the exit code of the task is zero then the ExitStatus of COMPLETED is returned.
 	 * @param stepExecution The stepExecution that kicked of the Task.
 	 * @return ExitStatus of COMPLETED else FAILED.
 	 */
@@ -65,16 +67,15 @@ public class ComposedTaskStepExecutionListener extends StepExecutionListenerSupp
 		Assert.notNull(executionId, "TaskLauncherTasklet did not " +
 				"return a task-execution-id.  Check to see if task " +
 				"exists.");
-
 		TaskExecution resultExecution = this.taskExplorer.getTaskExecution(executionId);
 
-		if (!StringUtils.isEmpty(resultExecution.getExitMessage())) {
+		if (!stepExecution.getExecutionContext().containsKey(TaskLauncherTasklet.IGNORE_EXIT_MESSAGE) &&
+				!StringUtils.isEmpty(resultExecution.getExitMessage())) {
 			result = new ExitStatus(resultExecution.getExitMessage());
 		}
 		else if (resultExecution.getExitCode() != 0) {
 			result = ExitStatus.FAILED;
 		}
-
 		logger.info(String.format("AfterStep processing complete for " +
 						"stepExecution %s with taskExecution %s",
 				stepExecution.getStepName(), executionId));

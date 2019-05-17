@@ -36,6 +36,8 @@ import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecuti
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Executes task launch request using Spring Cloud Data Flow's Restful API
@@ -46,6 +48,12 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  */
 public class TaskLauncherTasklet implements Tasklet {
+
+	final static String IGNORE_EXIT_MESSAGE = "IGNORE_EXIT_MESSAGE";
+
+	final static String IGNORE_EXIT_MESSAGE_PROPERTY = "ignoreExitMessage";
+
+	final static String IGNORE_EXIT_MESSAGE_PROPERTY_HYPHEN = "ignore-exit-message";
 
 	private ComposedTaskProperties composedTaskProperties;
 
@@ -132,7 +140,11 @@ public class TaskLauncherTasklet implements Tasklet {
 			this.executionId = this.taskOperations.launch(tmpTaskName,
 					this.properties, args);
 
-			stepExecutionContext.put("task-execution-id", executionId);
+			Boolean ignoreExitMessage = isIgnoreExitMessage(args, this.properties);
+			if (ignoreExitMessage != null) {
+				stepExecutionContext.put(IGNORE_EXIT_MESSAGE, ignoreExitMessage);
+			}
+			stepExecutionContext.put("task-execution-id", this.executionId);
 			stepExecutionContext.put("task-arguments", args);
 		}
 		else {
@@ -167,4 +179,77 @@ public class TaskLauncherTasklet implements Tasklet {
 		return RepeatStatus.CONTINUABLE;
 	}
 
+	private boolean isIgnoreExitMessageSetViaProperty(Map<String, String> properties) {
+		boolean result = false;
+		if (properties != null) {
+			for (String key : properties.keySet()) {
+				if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+				else if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY_HYPHEN)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	private Boolean isIgnoreExitMessage(List<String> args, Map<String, String> properties) {
+		Boolean result = null;
+		if (properties != null) {
+			for (String key : properties.keySet()) {
+				if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+				else if (key.contains(IGNORE_EXIT_MESSAGE_PROPERTY_HYPHEN)) {
+					if (properties.get(key).toLowerCase().equals("true")) {
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+		if (args != null) {
+			for (String arg : args) {
+				Boolean commandLineResult = isIgnoreExitMessageSetInCmdLine(arg);
+				if(commandLineResult != null) {
+					result = commandLineResult;
+					break;
+				}
+			}
+		}
+		return result;
+	}
+
+	private Boolean isIgnoreExitMessageSetInCmdLine(String commandLine) {
+		Boolean result = null;
+		String[] parsedCommandLine = StringUtils.delimitedListToStringArray(commandLine, " ");
+		List<String> args = CollectionUtils.arrayToList(parsedCommandLine);
+		for (String arg : args) {
+			if (arg.contains(IGNORE_EXIT_MESSAGE_PROPERTY)
+					|| arg.contains(IGNORE_EXIT_MESSAGE_PROPERTY_HYPHEN)) {
+				int firstEquals = arg.indexOf('=');
+				if (firstEquals != -1) {
+					// todo: should key only be a "flag" as in: put(key, true)?
+					String val = arg.substring(firstEquals + 1).trim();
+					if (val.toLowerCase().equals("true")) {
+						result = true;
+						break;
+					} else {
+						result = false;
+					}
+				}
+			}
+		}
+		return result;
+	}
 }
