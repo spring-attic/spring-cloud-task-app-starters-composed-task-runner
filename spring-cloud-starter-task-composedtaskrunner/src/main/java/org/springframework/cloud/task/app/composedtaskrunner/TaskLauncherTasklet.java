@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecutionTimeoutException;
+import org.springframework.cloud.task.configuration.TaskProperties;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.util.Assert;
@@ -65,10 +66,12 @@ public class TaskLauncherTasklet implements Tasklet {
 
 	private long timeout;
 
+	TaskProperties taskProperties;
 
 	public TaskLauncherTasklet(
 			TaskOperations taskOperations, TaskExplorer taskExplorer,
-			ComposedTaskProperties composedTaskProperties, String taskName) {
+			ComposedTaskProperties composedTaskProperties, String taskName,
+			TaskProperties taskProperties) {
 		Assert.hasText(taskName, "taskName must not be empty nor null.");
 		Assert.notNull(taskOperations, "taskOperations must not be null.");
 		Assert.notNull(taskExplorer, "taskExplorer must not be null.");
@@ -79,6 +82,7 @@ public class TaskLauncherTasklet implements Tasklet {
 		this.taskOperations = taskOperations;
 		this.taskExplorer = taskExplorer;
 		this.composedTaskProperties = composedTaskProperties;
+		this.taskProperties = taskProperties;
 	}
 
 	public void setProperties(Map<String, String> properties) {
@@ -128,7 +132,9 @@ public class TaskLauncherTasklet implements Tasklet {
 			if (stepExecutionContext.containsKey("task-arguments")) {
 				args = (List<String>) stepExecutionContext.get("task-arguments");
 			}
-
+			if(this.taskProperties.getExecutionid() != null) {
+				args.add("--spring.cloud.task.parent-execution-id=" + this.taskProperties.getExecutionid());
+			}
 			this.executionId = this.taskOperations.launch(tmpTaskName,
 					this.properties, args);
 

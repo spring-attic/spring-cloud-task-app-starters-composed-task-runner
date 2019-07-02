@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.TaskConfigurer;
+import org.springframework.cloud.task.configuration.TaskProperties;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -64,6 +65,9 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 	@Autowired
 	private TaskConfigurer taskConfigurer;
 
+	@Autowired
+	private TaskProperties taskProperties;
+
 	public ComposedTaskRunnerStepFactory(
 			ComposedTaskProperties composedTaskProperties, String taskName) {
 		Assert.notNull(composedTaskProperties,
@@ -90,7 +94,7 @@ public class ComposedTaskRunnerStepFactory implements FactoryBean<Step> {
 	public Step getObject() throws Exception {
 		TaskLauncherTasklet taskLauncherTasklet = new TaskLauncherTasklet(
 				this.taskOperations, taskConfigurer.getTaskExplorer(),
-				this.composedTaskProperties, this.taskName);
+				this.composedTaskProperties, this.taskName, taskProperties);
 
 		taskLauncherTasklet.setArguments(this.arguments);
 		taskLauncherTasklet.setProperties(this.taskSpecificProps);
