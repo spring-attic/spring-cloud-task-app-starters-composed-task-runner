@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.cloud.task.app.composedtaskrunner;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.sql.DataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -42,6 +42,7 @@ import org.springframework.cloud.dataflow.rest.client.DataFlowClientException;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.app.composedtaskrunner.support.TaskExecutionTimeoutException;
+import org.springframework.cloud.task.configuration.TaskProperties;
 import org.springframework.cloud.task.repository.TaskExecution;
 import org.springframework.cloud.task.repository.TaskExplorer;
 import org.springframework.cloud.task.repository.TaskRepository;
@@ -60,6 +61,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -85,6 +87,9 @@ public class TaskLauncherTaskletTests {
 
 	@Autowired
 	private JdbcTaskExecutionDao taskExecutionDao;
+
+	@Autowired
+	private TaskProperties taskProperties;
 
 	private TaskOperations taskOperations;
 
@@ -127,6 +132,36 @@ public class TaskLauncherTaskletTests {
 		assertEquals(2L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
+	}
+
+	@Test
+	@DirtiesContext
+	public void testTaskLauncherTaskletWithTaskExecutionId() throws Exception{
+		createCompleteTaskExecution(0);
+		TaskLauncherTasklet taskLauncherTasklet =
+				getTaskExecutionTasklet();
+		ChunkContext chunkContext = chunkContext();
+		mockReturnValForTaskExecution(1L);
+		execute(taskLauncherTasklet, null, chunkContext);
+		assertEquals(1L, chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-execution-id"));
+		assertNull(((List)chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-arguments")));
+		this.taskProperties.setExecutionid(88l);
+		mockReturnValForTaskExecution(2L);
+		chunkContext = chunkContext();
+		createCompleteTaskExecution(0);
+		taskLauncherTasklet = getTaskExecutionTasklet();
+		taskLauncherTasklet.setArguments(null);
+		execute(taskLauncherTasklet, null, chunkContext);
+		assertEquals(2L, chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-execution-id"));
+		assertEquals("--spring.cloud.task.parent-execution-id=88", ((List)chunkContext.getStepContext()
+				.getStepExecution().getExecutionContext()
+				.get("task-arguments")).get(0));
 	}
 
 	@Test
@@ -226,7 +261,7 @@ public class TaskLauncherTaskletTests {
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
 		return new TaskLauncherTasklet(this.taskOperations,
 				this.taskExplorer, this.composedTaskProperties,
-				TASK_NAME);
+				TASK_NAME, this.taskProperties);
 	}
 
 	private ChunkContext chunkContext ()
@@ -252,6 +287,11 @@ public class TaskLauncherTaskletTests {
 	@EnableBatchProcessing
 	@EnableConfigurationProperties(ComposedTaskProperties.class)
 	public static class TestConfiguration {
+
+		@Bean
+		TaskProperties taskProperties () {
+			return new TaskProperties();
+		}
 
 		@Bean
 		TaskRepositoryInitializer taskRepositoryInitializer() {
