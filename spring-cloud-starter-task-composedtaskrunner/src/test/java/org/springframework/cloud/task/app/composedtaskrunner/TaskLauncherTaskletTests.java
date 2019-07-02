@@ -88,9 +88,6 @@ public class TaskLauncherTaskletTests {
 	@Autowired
 	private JdbcTaskExecutionDao taskExecutionDao;
 
-	@Autowired
-	private TaskProperties taskProperties;
-
 	private TaskOperations taskOperations;
 
 	private TaskRepository taskRepository;
@@ -146,14 +143,16 @@ public class TaskLauncherTaskletTests {
 		assertEquals(1L, chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
 				.get("task-execution-id"));
-		assertNull(((List)chunkContext.getStepContext()
+		assertNull(chunkContext.getStepContext()
 				.getStepExecution().getExecutionContext()
-				.get("task-arguments")));
-		this.taskProperties.setExecutionid(88l);
+				.get("task-arguments"));
+
+		TaskProperties taskProperties = new TaskProperties();
+		taskProperties.setExecutionid(88l);
 		mockReturnValForTaskExecution(2L);
 		chunkContext = chunkContext();
 		createCompleteTaskExecution(0);
-		taskLauncherTasklet = getTaskExecutionTasklet();
+		taskLauncherTasklet = getTaskExecutionTasklet(taskProperties);
 		taskLauncherTasklet.setArguments(null);
 		execute(taskLauncherTasklet, null, chunkContext);
 		assertEquals(2L, chunkContext.getStepContext()
@@ -259,9 +258,13 @@ public class TaskLauncherTaskletTests {
 	}
 
 	private TaskLauncherTasklet getTaskExecutionTasklet() {
+		return getTaskExecutionTasklet(new TaskProperties());
+	}
+
+	private TaskLauncherTasklet getTaskExecutionTasklet(TaskProperties taskProperties) {
 		return new TaskLauncherTasklet(this.taskOperations,
 				this.taskExplorer, this.composedTaskProperties,
-				TASK_NAME, this.taskProperties);
+				TASK_NAME, taskProperties);
 	}
 
 	private ChunkContext chunkContext ()
@@ -288,10 +291,6 @@ public class TaskLauncherTaskletTests {
 	@EnableConfigurationProperties(ComposedTaskProperties.class)
 	public static class TestConfiguration {
 
-		@Bean
-		TaskProperties taskProperties () {
-			return new TaskProperties();
-		}
 
 		@Bean
 		TaskRepositoryInitializer taskRepositoryInitializer() {
