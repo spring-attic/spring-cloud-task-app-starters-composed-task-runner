@@ -29,7 +29,9 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
@@ -55,6 +57,7 @@ import static org.springframework.cloud.task.app.composedtaskrunner.ComposedTask
 		"composed-task-properties=" + COMPOSED_TASK_PROPS ,
 		"interval-time-between-checks=1100", "composed-task-arguments=--baz=boo",
 		"dataflow-server-uri=https://bar"})
+@EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
 public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 
 	@Autowired

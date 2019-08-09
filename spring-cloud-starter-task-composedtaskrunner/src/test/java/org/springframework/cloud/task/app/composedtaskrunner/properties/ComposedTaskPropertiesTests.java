@@ -43,6 +43,7 @@ public class ComposedTaskPropertiesTests {
 		properties.setGraph("ddd");
 		properties.setDataflowServerUsername("foo");
 		properties.setDataflowServerPassword("bar");
+		properties.setDataflowServerAccessToken("foobar");
 		assertEquals("aaa", properties.getComposedTaskProperties());
 		assertEquals("bbb", properties.getComposedTaskArguments());
 		assertEquals(12345, properties.getIntervalTimeBetweenChecks());
@@ -51,6 +52,7 @@ public class ComposedTaskPropertiesTests {
 		assertEquals("ddd", properties.getGraph());
 		assertEquals("foo", properties.getDataflowServerUsername());
 		assertEquals("bar", properties.getDataflowServerPassword());
+		assertEquals("foobar", properties.getDataflowServerAccessToken());
 	}
 
 	@Test

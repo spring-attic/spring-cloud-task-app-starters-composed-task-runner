@@ -17,6 +17,8 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 
+import java.net.ConnectException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
@@ -24,6 +26,7 @@ import org.junit.Test;
 import org.springframework.cloud.task.app.composedtaskrunner.DataFlowConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.ResourceAccessException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -64,4 +67,5 @@ public class DataFlowConfigurationTests {
 		}
 		fail("Expected an IllegalArgumentException to be thrown");
 	}
+
 }

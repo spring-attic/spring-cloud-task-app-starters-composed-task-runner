@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.common.security.support.OAuth2AccessTokenProvidingClientHttpRequestInterceptor;
 import org.springframework.cloud.dataflow.rest.client.DataFlowOperations;
 import org.springframework.cloud.dataflow.rest.client.DataFlowTemplate;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
@@ -55,7 +56,14 @@ public class DataFlowConfiguration {
 	public DataFlowOperations dataFlowOperations() {
 		final RestTemplate restTemplate = DataFlowTemplate.getDefaultDataflowRestTemplate();
 		validateUsernamePassword(this.properties.getDataflowServerUsername(), this.properties.getDataflowServerPassword());
-		if (StringUtils.hasText(this.properties.getDataflowServerUsername())
+		if (StringUtils.hasText(this.properties.getDataflowServerAccessToken())) {
+			restTemplate.setRequestFactory(
+				HttpClientConfigurer.create(this.properties.getDataflowServerUri()).buildClientHttpRequestFactory()
+			);
+			restTemplate.getInterceptors().add(new OAuth2AccessTokenProvidingClientHttpRequestInterceptor(this.properties.getDataflowServerAccessToken()));
+			logger.debug("Configured OAuth2 Access Token for accessing the Data Flow Server");
+		}
+		else if (StringUtils.hasText(this.properties.getDataflowServerUsername())
 				&& StringUtils.hasText(this.properties.getDataflowServerPassword())) {
 			restTemplate.setRequestFactory(HttpClientConfigurer.create(this.properties.getDataflowServerUri())
 					.basicAuthCredentials(properties.getDataflowServerUsername(), properties.getDataflowServerPassword())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,15 +62,20 @@ public class ComposedTaskProperties {
 
 	/**
 	 * The optional username for the dataflow server that will receive task launch requests.
-	 * Used to access the the dataflow server using Basic Authentication.
+	 * Used to access the the dataflow server using Basic Authentication. Not used if {@link #dataflowServerAccessToken} is set.
 	 */
 	private String dataflowServerUsername;
 
 	/**
 	 * The optional password for the dataflow server that will receive task launch requests.
-	 * Used to access the the dataflow server using Basic Authentication.
+	 * Used to access the the dataflow server using Basic Authentication. Not used if {@link #dataflowServerAccessToken} is set.
 	 */
 	private String dataflowServerPassword;
+
+	/**
+	 * The optional OAuth2 Access Token.
+	 */
+	private String dataflowServerAccessToken;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -260,4 +265,13 @@ public class ComposedTaskProperties {
 	public void setIncrementInstanceEnabled(boolean incrementInstanceEnabled) {
 		this.incrementInstanceEnabled = incrementInstanceEnabled;
 	}
+
+	public String getDataflowServerAccessToken() {
+		return dataflowServerAccessToken;
+	}
+
+	public void setDataflowServerAccessToken(String dataflowServerAccessToken) {
+		this.dataflowServerAccessToken = dataflowServerAccessToken;
+	}
+
 }

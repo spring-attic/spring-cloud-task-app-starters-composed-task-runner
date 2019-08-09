@@ -13,6 +13,9 @@
         <version>2.1.1.BUILD-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <spring-cloud-common-security-config.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-common-security-config.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -52,9 +55,23 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-common-security-config-web</artifactId>
+			<version>${spring-cloud-common-security-config.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.jackson</groupId>
+					<artifactId>jackson-mapper-asl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-web</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
     </dependencies>
 
     <build>

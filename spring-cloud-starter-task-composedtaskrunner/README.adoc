@@ -131,9 +131,10 @@ The **$$ComposedTaskRunner$$** $$task$$ has the following options:
 //tag::configuration-properties[]
 $$composed-task-arguments$$:: $$The arguments to be used for each of the tasks.$$ *($$String$$, default: `$$<none>$$`)*
 $$composed-task-properties$$:: $$The properties to be used for each of the tasks as well as their deployments.$$ *($$String$$, default: `$$<none>$$`)*
-$$dataflow-server-password$$:: $$The optional password for the dataflow server that will receive task launch requests. Used to access the the dataflow server using Basic Authentication.$$ *($$String$$, default: `$$<none>$$`)*
+$$dataflow-server-access-token$$:: $$The optional OAuth2 Access Token.$$ *($$String$$, default: `$$<none>$$`)*
+$$dataflow-server-password$$:: $$The optional password for the dataflow server that will receive task launch requests. Used to access the the dataflow server using Basic Authentication. Not used if {@link #dataflowServerAccessToken} is set.$$ *($$String$$, default: `$$<none>$$`)*
 $$dataflow-server-uri$$:: $$The URI for the dataflow server that will receive task launch requests. Default is http://localhost:9393;$$ *($$URI$$, default: `$$<none>$$`)*
-$$dataflow-server-username$$:: $$The optional username for the dataflow server that will receive task launch requests. Used to access the the dataflow server using Basic Authentication.$$ *($$String$$, default: `$$<none>$$`)*
+$$dataflow-server-username$$:: $$The optional username for the dataflow server that will receive task launch requests. Used to access the the dataflow server using Basic Authentication. Not used if {@link #dataflowServerAccessToken} is set.$$ *($$String$$, default: `$$<none>$$`)*
 $$graph$$:: $$The DSL for the composed task directed graph.$$ *($$String$$, default: `$$<none>$$`)*
 $$increment-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed without changing the parameters. Default is false which means a ComposedTaskRunner instance can only be executed once with a given set of parameters, if true it can be re-executed.$$ *($$Boolean$$, default: `$$false$$`)*
 $$interval-time-between-checks$$:: $$The amount of time in millis that the ComposedTaskRunner will wait between checks of the database to see if a task has completed.$$ *($$Integer$$, default: `$$10000$$`)*

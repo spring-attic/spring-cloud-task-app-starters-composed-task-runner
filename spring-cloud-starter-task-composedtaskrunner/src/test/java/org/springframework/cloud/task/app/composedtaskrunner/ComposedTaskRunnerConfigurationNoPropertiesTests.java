@@ -27,7 +27,9 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.cloud.common.security.CommonSecurityAutoConfiguration;
 import org.springframework.cloud.dataflow.rest.client.TaskOperations;
 import org.springframework.cloud.task.app.composedtaskrunner.configuration.DataFlowTestConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,6 +49,7 @@ import static org.mockito.Mockito.verify;
 		ComposedTaskRunnerConfiguration.class,
 		StepBeanDefinitionRegistrar.class})
 @TestPropertySource(properties = {"graph=AAA && BBB && CCC","max-wait-time=1000"})
+@EnableAutoConfiguration(exclude = { CommonSecurityAutoConfiguration.class})
 public class ComposedTaskRunnerConfigurationNoPropertiesTests {
 
 	@Autowired
