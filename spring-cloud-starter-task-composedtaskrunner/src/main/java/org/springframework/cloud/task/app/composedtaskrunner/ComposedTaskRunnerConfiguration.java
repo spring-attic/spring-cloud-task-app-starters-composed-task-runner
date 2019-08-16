@@ -16,9 +16,14 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner;
 
+import javax.sql.DataSource;
+
 import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.batch.BatchProperties;
+import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.cloud.task.configuration.EnableTask;
@@ -67,5 +72,10 @@ public class ComposedTaskRunnerConfiguration {
 		taskExecutor.setWaitForTasksToCompleteOnShutdown(
 				properties.isSplitThreadWaitForTasksToCompleteOnShutdown());
 		return taskExecutor;
+	}
+
+	@Bean
+	public BatchConfigurer getComposedBatchConfigurer(BatchProperties properties, DataSource dataSource, TransactionManagerCustomizers transactionManagerCustomizers) {
+		return new ComposedBatchConfigurer(properties, dataSource, transactionManagerCustomizers);
 	}
 }
