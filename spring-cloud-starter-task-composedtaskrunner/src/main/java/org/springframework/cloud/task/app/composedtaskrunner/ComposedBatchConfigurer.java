@@ -21,6 +21,7 @@ import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.batch.BasicBatchConfigurer;
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
+import org.springframework.transaction.annotation.Isolation;
 
 /**
  * A BatchConfigurer for CTR that will establish the transaction isolation lavel to READ_COMMITTED.
@@ -42,6 +43,6 @@ public class ComposedBatchConfigurer extends BasicBatchConfigurer {
 
 	@Override
 	protected String determineIsolationLevel() {
-		return "ISOLATION_READ_COMMITTED";
+		return "ISOLATION_" + Isolation.READ_COMMITTED;
 	}
 }
