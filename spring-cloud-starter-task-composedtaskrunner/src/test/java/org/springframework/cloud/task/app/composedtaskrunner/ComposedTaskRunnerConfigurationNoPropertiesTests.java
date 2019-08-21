@@ -69,6 +69,6 @@ public class ComposedTaskRunnerConfigurationNoPropertiesTests {
 		job.execute(jobExecution);
 
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
-		verify(this.taskOperations).launch("AAA", new HashMap<>(0), new ArrayList<>(0));
+		verify(this.taskOperations).launch("AAA", new HashMap<>(0), new ArrayList<>(0), null);
 	}
 }

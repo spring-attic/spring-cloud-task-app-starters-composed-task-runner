@@ -136,7 +136,7 @@ public class TaskLauncherTasklet implements Tasklet {
 				args.add("--spring.cloud.task.parent-execution-id=" + this.taskProperties.getExecutionid());
 			}
 			this.executionId = this.taskOperations.launch(tmpTaskName,
-					this.properties, args);
+					this.properties, args, null);
 
 			stepExecutionContext.put("task-execution-id", executionId);
 			stepExecutionContext.put("task-arguments", args);

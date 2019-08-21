@@ -93,6 +93,6 @@ public class ComposedTaskRunnerConfigurationWithPropertiesTests {
 		List<String> args = new ArrayList<>(1);
 		args.add("--baz=boo");
 		Assert.isNull(job.getJobParametersIncrementer(), "JobParametersIncrementer must be null.");
-		verify(this.taskOperations).launch("AAA", props, args);
+		verify(this.taskOperations).launch("AAA", props, args, null);
 	}
 }

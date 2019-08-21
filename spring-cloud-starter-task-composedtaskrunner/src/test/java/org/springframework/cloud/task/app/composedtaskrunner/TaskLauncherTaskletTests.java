@@ -186,7 +186,7 @@ public class TaskLauncherTaskletTests {
 				.when(this.taskOperations)
 				.launch(ArgumentMatchers.anyString(),
 						ArgumentMatchers.any(),
-						ArgumentMatchers.any());
+						ArgumentMatchers.any(), ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		Throwable exception = assertThrows(DataFlowClientException.class,
@@ -202,7 +202,7 @@ public class TaskLauncherTaskletTests {
 		Mockito.doThrow(new ResourceAccessException(ERROR_MESSAGE))
 				.when(this.taskOperations).launch(ArgumentMatchers.anyString(),
 				ArgumentMatchers.any(),
-				ArgumentMatchers.any());
+				ArgumentMatchers.any(), ArgumentMatchers.any());
 		TaskLauncherTasklet taskLauncherTasklet = getTaskExecutionTasklet();
 		ChunkContext chunkContext = chunkContext();
 		Throwable exception = assertThrows(ResourceAccessException.class,
@@ -283,7 +283,7 @@ public class TaskLauncherTaskletTests {
 				.when(this.taskOperations)
 				.launch(ArgumentMatchers.anyString(),
 						ArgumentMatchers.any(),
-						ArgumentMatchers.any());
+						ArgumentMatchers.any(), ArgumentMatchers.any());
 	}
 
 	@Configuration
