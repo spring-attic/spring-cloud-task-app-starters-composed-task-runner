@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 
 package org.springframework.cloud.task.app.composedtaskrunner.configuration;
 
-import java.net.ConnectException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.junit.Test;
@@ -26,7 +24,6 @@ import org.junit.Test;
 import org.springframework.cloud.task.app.composedtaskrunner.DataFlowConfiguration;
 import org.springframework.cloud.task.app.composedtaskrunner.properties.ComposedTaskProperties;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.ResourceAccessException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -43,7 +40,7 @@ public class DataFlowConfigurationTests {
 		final DataFlowConfiguration dataFlowConfiguration = new DataFlowConfiguration();
 		ReflectionTestUtils.setField(dataFlowConfiguration, "properties", composedTaskProperties);
 		try {
-			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations());
+			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations(null, null));
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("A username may be specified only together with a password", e.getMessage());
@@ -59,7 +56,7 @@ public class DataFlowConfigurationTests {
 		final DataFlowConfiguration dataFlowConfiguration = new DataFlowConfiguration();
 		ReflectionTestUtils.setField(dataFlowConfiguration, "properties", composedTaskProperties);
 		try {
-			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations());
+			dataFlowConfiguration.taskOperations(dataFlowConfiguration.dataFlowOperations(null, null));
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("A password may be specified only together with a username", e.getMessage());

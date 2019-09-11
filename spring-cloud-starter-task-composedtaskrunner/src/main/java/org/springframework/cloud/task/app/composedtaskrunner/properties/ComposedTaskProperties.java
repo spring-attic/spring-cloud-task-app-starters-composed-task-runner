@@ -18,6 +18,7 @@ package org.springframework.cloud.task.app.composedtaskrunner.properties;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -76,6 +77,18 @@ public class ComposedTaskProperties {
 	 * The optional OAuth2 Access Token.
 	 */
 	private String dataflowServerAccessToken;
+
+	/**
+	 * The optional OAuth2 Client Credentials. If not null,
+	 * then the following properties are ignored:
+	 *
+	 * <ul>
+	 *   <li>dataflowServerUsername
+	 *   <li>dataflowServerPassword
+	 *   <li>dataflowServerAccessToken
+	 * <ul>
+	 */
+	private OAuth2ClientCredentials oauth2ClientCredentials;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -274,4 +287,69 @@ public class ComposedTaskProperties {
 		this.dataflowServerAccessToken = dataflowServerAccessToken;
 	}
 
+	public OAuth2ClientCredentials getOauth2ClientCredentials() {
+		return oauth2ClientCredentials;
+	}
+
+	public void setOauth2ClientCredentials(OAuth2ClientCredentials oauth2ClientCredentials) {
+		this.oauth2ClientCredentials = oauth2ClientCredentials;
+	}
+
+	/**
+	 * OAuth Client Credentials.
+	 */
+	public static class OAuth2ClientCredentials {
+
+		/**
+		 * The optional OAuth2 Access Token.
+		 */
+		private String clientId;
+
+		/**
+		 * The optional OAuth2 Access Token.
+		 */
+		private String clientSecret;
+
+		/**
+		 * Token URI for the provider.
+		 */
+		private String tokenUri;
+
+		/**
+		 * Authorization scopes.
+		 */
+		private Set<String> scopes;
+
+		public String getClientId() {
+			return clientId;
+		}
+
+		public void setClientId(String clientId) {
+			this.clientId = clientId;
+		}
+
+		public String getClientSecret() {
+			return clientSecret;
+		}
+
+		public void setClientSecret(String clientSecret) {
+			this.clientSecret = clientSecret;
+		}
+
+		public String getTokenUri() {
+			return tokenUri;
+		}
+
+		public void setTokenUri(String tokenUri) {
+			this.tokenUri = tokenUri;
+		}
+
+		public Set<String> getScopes() {
+			return scopes;
+		}
+
+		public void setScope(Set<String> scopes) {
+			this.scopes = scopes;
+		}
+	}
 }
