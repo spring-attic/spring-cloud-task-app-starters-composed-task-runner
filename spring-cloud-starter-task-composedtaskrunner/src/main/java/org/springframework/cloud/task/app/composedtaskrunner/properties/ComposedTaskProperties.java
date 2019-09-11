@@ -18,6 +18,7 @@ package org.springframework.cloud.task.app.composedtaskrunner.properties;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -76,6 +77,34 @@ public class ComposedTaskProperties {
 	 * The optional OAuth2 Access Token.
 	 */
 	private String dataflowServerAccessToken;
+
+	/**
+	 * The OAuth2 Client Id (Used for the client credentials grant).
+	 *
+	 * If not null, then the following properties are ignored:
+	 *
+	 * <ul>
+	 *   <li>dataflowServerUsername
+	 *   <li>dataflowServerPassword
+	 *   <li>dataflowServerAccessToken
+	 * <ul>
+	 */
+	private String oauth2ClientCredentialsClientId;
+
+	/**
+	 * The OAuth2 Client Secret (Used for the client credentials grant).
+	 */
+	private String oauth2ClientCredentialsClientSecret;
+
+	/**
+	 * Token URI for the OAuth2 provider (Used for the client credentials grant).
+	 */
+	private String oauth2ClientCredentialsTokenUri;
+
+	/**
+	 * OAuth2 Authorization scopes (Used for the client credentials grant).
+	 */
+	private Set<String> oauth2ClientCredentialsScopes;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -272,6 +301,38 @@ public class ComposedTaskProperties {
 
 	public void setDataflowServerAccessToken(String dataflowServerAccessToken) {
 		this.dataflowServerAccessToken = dataflowServerAccessToken;
+	}
+
+	public String getOauth2ClientCredentialsClientId() {
+		return oauth2ClientCredentialsClientId;
+	}
+
+	public void setOauth2ClientCredentialsClientId(String oauth2ClientCredentialsClientId) {
+		this.oauth2ClientCredentialsClientId = oauth2ClientCredentialsClientId;
+	}
+
+	public String getOauth2ClientCredentialsClientSecret() {
+		return oauth2ClientCredentialsClientSecret;
+	}
+
+	public void setOauth2ClientCredentialsClientSecret(String oauth2ClientCredentialsClientSecret) {
+		this.oauth2ClientCredentialsClientSecret = oauth2ClientCredentialsClientSecret;
+	}
+
+	public String getOauth2ClientCredentialsTokenUri() {
+		return oauth2ClientCredentialsTokenUri;
+	}
+
+	public void setOauth2ClientCredentialsTokenUri(String oauth2ClientCredentialsTokenUri) {
+		this.oauth2ClientCredentialsTokenUri = oauth2ClientCredentialsTokenUri;
+	}
+
+	public Set<String> getOauth2ClientCredentialsScopes() {
+		return oauth2ClientCredentialsScopes;
+	}
+
+	public void setOauth2ClientCredentialsScopes(Set<String> oauth2ClientCredentialsScopes) {
+		this.oauth2ClientCredentialsScopes = oauth2ClientCredentialsScopes;
 	}
 
 }

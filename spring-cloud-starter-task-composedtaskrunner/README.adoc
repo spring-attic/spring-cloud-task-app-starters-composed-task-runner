@@ -139,6 +139,10 @@ $$graph$$:: $$The DSL for the composed task directed graph.$$ *($$String$$, defa
 $$increment-instance-enabled$$:: $$Allows a single ComposedTaskRunner instance to be re-executed without changing the parameters. Default is false which means a ComposedTaskRunner instance can only be executed once with a given set of parameters, if true it can be re-executed.$$ *($$Boolean$$, default: `$$false$$`)*
 $$interval-time-between-checks$$:: $$The amount of time in millis that the ComposedTaskRunner will wait between checks of the database to see if a task has completed.$$ *($$Integer$$, default: `$$10000$$`)*
 $$max-wait-time$$:: $$The maximum amount of time in millis that a individual step can run before the execution of the Composed task is failed.$$ *($$Integer$$, default: `$$0$$`)*
+$$oauth2-client-credentials-client-id$$:: $$The OAuth2 Client Id (Used for the client credentials grant). If not null, then the following properties are ignored: <ul>   <li>dataflowServerUsername   <li>dataflowServerPassword   <li>dataflowServerAccessToken <ul>$$ *($$String$$, default: `$$<none>$$`)*
+$$oauth2-client-credentials-client-secret$$:: $$The OAuth2 Client Secret (Used for the client credentials grant).$$ *($$String$$, default: `$$<none>$$`)*
+$$oauth2-client-credentials-scopes$$:: $$OAuth2 Authorization scopes (Used for the client credentials grant).$$ *($$Set<String>$$, default: `$$<none>$$`)*
+$$oauth2-client-credentials-token-uri$$:: $$Token URI for the OAuth2 provider (Used for the client credentials grant).$$ *($$String$$, default: `$$<none>$$`)*
 $$split-thread-allow-core-thread-timeout$$:: $$Specifies whether to allow split core threads to timeout. Default is false;$$ *($$Boolean$$, default: `$$false$$`)*
 $$split-thread-core-pool-size$$:: $$Split's core pool size. Default is 4;$$ *($$Integer$$, default: `$$4$$`)*
 $$split-thread-keep-alive-seconds$$:: $$Split's thread keep alive seconds. Default is 60.$$ *($$Integer$$, default: `$$60$$`)*
