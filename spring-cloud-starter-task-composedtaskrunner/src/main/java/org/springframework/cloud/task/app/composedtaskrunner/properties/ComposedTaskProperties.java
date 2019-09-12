@@ -79,8 +79,9 @@ public class ComposedTaskProperties {
 	private String dataflowServerAccessToken;
 
 	/**
-	 * The optional OAuth2 Client Credentials. If not null,
-	 * then the following properties are ignored:
+	 * The OAuth2 Client Id (Used for the client credentials grant).
+	 *
+	 * If not null, then the following properties are ignored:
 	 *
 	 * <ul>
 	 *   <li>dataflowServerUsername
@@ -88,7 +89,22 @@ public class ComposedTaskProperties {
 	 *   <li>dataflowServerAccessToken
 	 * <ul>
 	 */
-	private OAuth2ClientCredentials oauth2ClientCredentials;
+	private String oauth2ClientCredentialsClientId;
+
+	/**
+	 * The OAuth2 Client Secret (Used for the client credentials grant).
+	 */
+	private String oauth2ClientCredentialsClientSecret;
+
+	/**
+	 * Token URI for the OAuth2 provider (Used for the client credentials grant).
+	 */
+	private String oauth2ClientCredentialsTokenUri;
+
+	/**
+	 * OAuth2 Authorization scopes (Used for the client credentials grant).
+	 */
+	private Set<String> oauth2ClientCredentialsScopes;
 
 	/**
 	 * The DSL for the composed task directed graph.
@@ -287,69 +303,36 @@ public class ComposedTaskProperties {
 		this.dataflowServerAccessToken = dataflowServerAccessToken;
 	}
 
-	public OAuth2ClientCredentials getOauth2ClientCredentials() {
-		return oauth2ClientCredentials;
+	public String getOauth2ClientCredentialsClientId() {
+		return oauth2ClientCredentialsClientId;
 	}
 
-	public void setOauth2ClientCredentials(OAuth2ClientCredentials oauth2ClientCredentials) {
-		this.oauth2ClientCredentials = oauth2ClientCredentials;
+	public void setOauth2ClientCredentialsClientId(String oauth2ClientCredentialsClientId) {
+		this.oauth2ClientCredentialsClientId = oauth2ClientCredentialsClientId;
 	}
 
-	/**
-	 * OAuth Client Credentials.
-	 */
-	public static class OAuth2ClientCredentials {
-
-		/**
-		 * The OAuth2 Client Id (Used for the client credentials grant).
-		 */
-		private String clientId;
-
-		/**
-		 * The OAuth2 Client Secret (Used for the client credentials grant).
-		 */
-		private String clientSecret;
-
-		/**
-		 * Token URI for the provider.
-		 */
-		private String tokenUri;
-
-		/**
-		 * Authorization scopes.
-		 */
-		private Set<String> scopes;
-
-		public String getClientId() {
-			return clientId;
-		}
-
-		public void setClientId(String clientId) {
-			this.clientId = clientId;
-		}
-
-		public String getClientSecret() {
-			return clientSecret;
-		}
-
-		public void setClientSecret(String clientSecret) {
-			this.clientSecret = clientSecret;
-		}
-
-		public String getTokenUri() {
-			return tokenUri;
-		}
-
-		public void setTokenUri(String tokenUri) {
-			this.tokenUri = tokenUri;
-		}
-
-		public Set<String> getScopes() {
-			return scopes;
-		}
-
-		public void setScope(Set<String> scopes) {
-			this.scopes = scopes;
-		}
+	public String getOauth2ClientCredentialsClientSecret() {
+		return oauth2ClientCredentialsClientSecret;
 	}
+
+	public void setOauth2ClientCredentialsClientSecret(String oauth2ClientCredentialsClientSecret) {
+		this.oauth2ClientCredentialsClientSecret = oauth2ClientCredentialsClientSecret;
+	}
+
+	public String getOauth2ClientCredentialsTokenUri() {
+		return oauth2ClientCredentialsTokenUri;
+	}
+
+	public void setOauth2ClientCredentialsTokenUri(String oauth2ClientCredentialsTokenUri) {
+		this.oauth2ClientCredentialsTokenUri = oauth2ClientCredentialsTokenUri;
+	}
+
+	public Set<String> getOauth2ClientCredentialsScopes() {
+		return oauth2ClientCredentialsScopes;
+	}
+
+	public void setOauth2ClientCredentialsScopes(Set<String> oauth2ClientCredentialsScopes) {
+		this.oauth2ClientCredentialsScopes = oauth2ClientCredentialsScopes;
+	}
+
 }

@@ -44,24 +44,18 @@ public class OnOAuth2ClientCredentialsEnabledTests {
 	public void noPropertySet() throws Exception {
 		this.context = load(Config.class);
 		assertThat(context.containsBean("myBean"), equalTo(false));
-		context.close();
-	}
-
-	@Test(expected=IllegalStateException.class)
-	public void propertySecurityOauth() throws Exception {
-		load(Config.class, "oauth2-client-credentials");
 	}
 
 	@Test
 	public void propertyClientId() throws Exception {
-		this.context = load(Config.class, "oauth2-client-credentials.client-id:12345");
+		this.context = load(Config.class, "oauth2-client-credentials-client-id:12345");
 		assertThat(context.containsBean("myBean"), equalTo(true));
 	}
 
 	@Test
 	public void clientIdOnlyWithNoValue() throws Exception {
-		this.context = load(Config.class, "oauth2-client-credentials.client-id");
-		assertThat(context.containsBean("myBean"), equalTo(true));
+		this.context = load(Config.class, "oauth2-client-credentials-client-id:");
+		assertThat(context.containsBean("myBean"), equalTo(false));
 	}
 
 	private AnnotationConfigApplicationContext load(Class<?> config, String... env) {

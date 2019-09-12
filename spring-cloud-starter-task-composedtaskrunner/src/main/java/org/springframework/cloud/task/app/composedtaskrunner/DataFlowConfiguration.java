@@ -62,15 +62,22 @@ public class DataFlowConfiguration {
 		return dataFlowOperations.taskOperations();
 	}
 
+	/**
+	 * @param clientRegistrations Can be null. Only required for Client Credentials Grant authentication
+	 * @param clientCredentialsTokenResponseClient Can be null. Only required for Client Credentials Grant authentication
+	 * @return DataFlowOperations
+	 */
 	@Bean
-	public DataFlowOperations dataFlowOperations(ClientRegistrationRepository  clientRegistrations,
-			OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsTokenResponseClient) {
+	public DataFlowOperations dataFlowOperations(
+		@Autowired(required = false) ClientRegistrationRepository  clientRegistrations,
+		@Autowired(required = false) OAuth2AccessTokenResponseClient<OAuth2ClientCredentialsGrantRequest> clientCredentialsTokenResponseClient) {
+
 		final RestTemplate restTemplate = DataFlowTemplate.getDefaultDataflowRestTemplate();
 		validateUsernamePassword(this.properties.getDataflowServerUsername(), this.properties.getDataflowServerPassword());
 
 		HttpClientConfigurer clientHttpRequestFactoryBuilder = null;
 
-		if (this.properties.getOauth2ClientCredentials() != null
+		if (this.properties.getOauth2ClientCredentialsClientId() != null
 				|| StringUtils.hasText(this.properties.getDataflowServerAccessToken())
 				|| (StringUtils.hasText(this.properties.getDataflowServerUsername())
 						&& StringUtils.hasText(this.properties.getDataflowServerPassword()))) {
@@ -79,7 +86,7 @@ public class DataFlowConfiguration {
 
 		String accessTokenValue = null;
 
-		if (this.properties.getOauth2ClientCredentials() != null) {
+		if (this.properties.getOauth2ClientCredentialsClientId() != null) {
 			final ClientRegistration clientRegistration = clientRegistrations.findByRegistrationId("default");
 			final OAuth2ClientCredentialsGrantRequest grantRequest = new OAuth2ClientCredentialsGrantRequest(clientRegistration);
 			final OAuth2AccessTokenResponse res = clientCredentialsTokenResponseClient.getTokenResponse(grantRequest);
@@ -129,10 +136,10 @@ public class DataFlowConfiguration {
 			final ClientRegistration clientRegistration = ClientRegistration
 					.withRegistrationId("default")
 					.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-					.tokenUri(properties.getOauth2ClientCredentials().getTokenUri())
-					.clientId(properties.getOauth2ClientCredentials().getClientId())
-					.clientSecret(properties.getOauth2ClientCredentials().getClientSecret())
-					.scope(properties.getOauth2ClientCredentials().getScopes())
+					.tokenUri(properties.getOauth2ClientCredentialsTokenUri())
+					.clientId(properties.getOauth2ClientCredentialsClientId())
+					.clientSecret(properties.getOauth2ClientCredentialsClientSecret())
+					.scope(properties.getOauth2ClientCredentialsScopes())
 					.build();
 			return new InMemoryClientRegistrationRepository(clientRegistration);
 		}
