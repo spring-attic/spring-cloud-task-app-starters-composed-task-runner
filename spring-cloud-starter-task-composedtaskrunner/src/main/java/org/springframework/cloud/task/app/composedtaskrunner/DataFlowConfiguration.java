@@ -68,21 +68,16 @@ public class DataFlowConfiguration {
 		final RestTemplate restTemplate = DataFlowTemplate.getDefaultDataflowRestTemplate();
 		validateUsernamePassword(this.properties.getDataflowServerUsername(), this.properties.getDataflowServerPassword());
 
-		final HttpClientConfigurer clientHttpRequestFactoryBuilder;
+		HttpClientConfigurer clientHttpRequestFactoryBuilder = null;
 
 		if (this.properties.getOauth2ClientCredentials() != null
 				|| StringUtils.hasText(this.properties.getDataflowServerAccessToken())
 				|| (StringUtils.hasText(this.properties.getDataflowServerUsername())
-						&& StringUtils.hasText(this.properties.getDataflowServerPassword())
-					)
-			) {
+						&& StringUtils.hasText(this.properties.getDataflowServerPassword()))) {
 			clientHttpRequestFactoryBuilder = HttpClientConfigurer.create(this.properties.getDataflowServerUri());
 		}
-		else {
-			clientHttpRequestFactoryBuilder = null;
-		}
 
-		final String accessTokenValue;
+		String accessTokenValue = null;
 
 		if (this.properties.getOauth2ClientCredentials() != null) {
 			final ClientRegistration clientRegistration = clientRegistrations.findByRegistrationId("default");
@@ -102,7 +97,6 @@ public class DataFlowConfiguration {
 			logger.debug("Configured basic security for accessing the Data Flow Server");
 		}
 		else {
-			accessTokenValue = null;
 			logger.debug("Not configuring basic security for accessing the Data Flow Server");
 		}
 
@@ -129,10 +123,6 @@ public class DataFlowConfiguration {
 	@Configuration
 	@Conditional(OnOAuth2ClientCredentialsEnabled.class)
 	static class clientCredentialsConfiguration {
-		{
-			System.out.println("Client Credentials Enabled");
-		}
-
 		@Bean
 		public InMemoryClientRegistrationRepository clientRegistrationRepository(
 				ComposedTaskProperties properties) {

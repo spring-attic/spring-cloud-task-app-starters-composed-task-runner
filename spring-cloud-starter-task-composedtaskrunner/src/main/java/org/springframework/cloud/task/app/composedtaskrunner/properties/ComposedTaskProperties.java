@@ -301,12 +301,12 @@ public class ComposedTaskProperties {
 	public static class OAuth2ClientCredentials {
 
 		/**
-		 * The optional OAuth2 Access Token.
+		 * The OAuth2 Client Id (Used for the client credentials grant).
 		 */
 		private String clientId;
 
 		/**
-		 * The optional OAuth2 Access Token.
+		 * The OAuth2 Client Secret (Used for the client credentials grant).
 		 */
 		private String clientSecret;
 

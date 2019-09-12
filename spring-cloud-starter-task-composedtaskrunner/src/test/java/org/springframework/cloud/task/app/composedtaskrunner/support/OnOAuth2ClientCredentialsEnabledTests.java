@@ -18,6 +18,7 @@ package org.springframework.cloud.task.app.composedtaskrunner.support;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -30,9 +31,18 @@ import org.springframework.context.annotation.Configuration;
  */
 public class OnOAuth2ClientCredentialsEnabledTests {
 
+	private AnnotationConfigApplicationContext context;
+
+	@After
+	public void teardown() {
+		if (this.context != null) {
+			this.context.close();
+		}
+	}
+
 	@Test
 	public void noPropertySet() throws Exception {
-		AnnotationConfigApplicationContext context = load(Config.class);
+		this.context = load(Config.class);
 		assertThat(context.containsBean("myBean"), equalTo(false));
 		context.close();
 	}
@@ -44,16 +54,14 @@ public class OnOAuth2ClientCredentialsEnabledTests {
 
 	@Test
 	public void propertyClientId() throws Exception {
-		AnnotationConfigApplicationContext context = load(Config.class, "oauth2-client-credentials.client-id:12345");
+		this.context = load(Config.class, "oauth2-client-credentials.client-id:12345");
 		assertThat(context.containsBean("myBean"), equalTo(true));
-		context.close();
 	}
 
 	@Test
 	public void clientIdOnlyWithNoValue() throws Exception {
-		AnnotationConfigApplicationContext context = load(Config.class, "oauth2-client-credentials.client-id");
+		this.context = load(Config.class, "oauth2-client-credentials.client-id");
 		assertThat(context.containsBean("myBean"), equalTo(true));
-		context.close();
 	}
 
 	private AnnotationConfigApplicationContext load(Class<?> config, String... env) {
