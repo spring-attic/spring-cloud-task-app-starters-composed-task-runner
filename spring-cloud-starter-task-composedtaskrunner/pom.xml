@@ -106,6 +106,7 @@
                     <additionalAppProperties>
                         <additionalAppProperty>spring.cloud.task.closecontextEnabled=true</additionalAppProperty>
                     </additionalAppProperties>
+                    <enableContainerImageMetadata>true</enableContainerImageMetadata>
                 </configuration>
             </plugin>
         </plugins>
