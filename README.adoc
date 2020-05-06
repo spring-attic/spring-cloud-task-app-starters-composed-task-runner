@@ -1,5 +1,5 @@
 # Composed Task Runner Application
 
-To learn more about this application and the supported properties, please review the following link.
+= PLEASE NOTE: This project has been moved to the https://github.com/spring-cloud/spring-cloud-dataflow[Spring Cloud Data Flow Project].
 
-include::spring-cloud-starter-task-composedtaskrunner/README.adoc[]
+
