@@ -1,3 +1,5 @@
+# composed-task-runner is no longer actively maintained by VMware, Inc.
+
 # Composed Task Runner Application
 
 = PLEASE NOTE: This project has been moved to the https://github.com/spring-cloud/spring-cloud-dataflow[Spring Cloud Data Flow Project].
